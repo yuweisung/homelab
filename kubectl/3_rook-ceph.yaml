@@ -1,0 +1,28 @@
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: /Users/ysung/.kube/config
+  tasks:
+  - name: rook-ceph crd
+    kubernetes.core.k8s:
+      state: present
+      src: "{{ item }}"
+    with_items:
+      - ~/git/rook/deploy/examples/crds.yaml
+      - ~/git/rook/deploy/examples/common.yaml
+      - ~/git/rook/deploy/examples/operator.yaml
+  - name: rook-ceph cluster
+    kubernetes.core.k8s:
+      state: present
+      src: ~/git/rook/deploy/examples/cluster.yaml 
+  - name: rook-ceph block storage
+    kubernetes.core.k8s:
+      state: present
+      src: ~/git/rook/deploy/examples/csi/rbd/storageclass.yaml 
+  - name: set default storage class
+    ansible.builtin.shell: |
+      kubectl patch storageclass rook-ceph-block -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+  - name: rook-ceph toolbox
+    kubernetes.core.k8s:
+      state: present
+      src: ~/git/rook/deploy/examples/toolbox.yaml

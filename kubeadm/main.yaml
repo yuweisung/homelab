@@ -1,0 +1,30 @@
+- hosts: master
+  gather_facts: yes
+  become: yes
+  vars:
+
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  tasks:
+  - name: kubeadm init
+    shell: kubeadm init --pod-network-cidr {{ pod_cidr }} --apiserver-advertise-address {{ api_adv_addr }} --apiserver-cert-extra-sans {{ extra_sans}}
+  - name: kube admin config
+    fetch:
+      src: /etc/kubernetes/admin.conf
+      dest: /Users/ysung/.kube/config
+      flat: yes
+- hosts: workers
+  gather_facts: no
+  become: yes
+  tags: join
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  tasks:
+  - name: generate join token
+    shell: kubeadm token create --print-join-command
+    register: join_command
+    delegate_to: m1.home.lab
+  - set_fact:
+      kubeadm_join: "{{ join_command.stdout }}"
+  - name: kubeadm join
+    shell: "{{ kubeadm_join }}"

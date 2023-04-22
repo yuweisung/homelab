@@ -1,0 +1,38 @@
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: /Users/ysung/.kube/config
+  tasks:
+  - name: download metallb
+    ansible.builtin.get_url:
+      url: https://raw.githubusercontent.com/metallb/metallb/{{ metallb_version }}/config/manifests/metallb-native.yaml
+      dest: /tmp/metallb-native.yaml
+      mode: '0664'
+  - name: apply metallb
+    kubernetes.core.k8s:
+      state: present
+      src: /tmp/metallb-native.yaml
+  - name: apply pool
+    kubernetes.core.k8s:
+      state: present
+      definition:
+        apiVersion: metallb.io/v1beta1
+        kind: IPAddressPool
+        metadata:
+          name: default-pool
+          namespace: metallb-system
+        spec:
+          addresses:
+          - "{{ ip_range }}"
+  - name: apply l2_advertisement
+    kubernetes.core.k8s:
+      state: present
+      definition:
+        apiVersion: metallb.io/v1beta1
+        kind: L2Advertisement
+        metadata:
+          name: default
+          namespace: metallb-system 
+        spec:
+          ipAddressPools:
+          - default-pool

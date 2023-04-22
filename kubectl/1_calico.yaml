@@ -1,0 +1,23 @@
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: /Users/ysung/.kube/config
+  tasks:
+  - name: download calico operator
+    ansible.builtin.get_url:
+      url: https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/tigera-operator.yaml
+      dest: /tmp/tigera-operator.yaml
+      mode: '0664'
+  - name: apply tigera-operator
+    kubernetes.core.k8s:
+      state: present
+      src: /tmp/tigera-operator.yaml  
+  - name: download calico custom resource
+    ansible.builtin.get_url:
+      url: https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/custom-resources.yaml
+      dest: /tmp/custom-resources.yaml
+      mode: '0664'
+  - name: apply calico cr
+    kubernetes.core.k8s:
+      state: present
+      src: /tmp/custom-resources.yaml

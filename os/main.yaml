@@ -1,0 +1,74 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: containerd dir
+    ansible.builtin.file:
+      path: /etc/containerd
+      state: directory
+  - name: copy k8s sysctl
+    ansible.builtin.copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      force: false
+    loop:
+      - src: containerd_config.toml
+        dest: /etc/containerd/config.toml
+      - src: k8s_module_load.conf
+        dest: /etc/modules-load.d/k8s.conf
+      - src: k8s_sysctl.conf
+        dest: /etc/sysctl.d/50-k8s.conf
+      - src: apt-key.gpg
+        dest: /etc/apt/trusted.gpg.d/google-apt.gpg
+  - name: sysctl
+    sysctl:
+      name: "{{ item }}"
+      value: '1'
+      state: present
+    with_items:
+      - net.bridge.bridge-nf-call-ip6tables
+      - net.bridge.bridge-nf-call-iptables
+      - net.ipv4.ip_forward
+  - name: swap off
+    shell: "swapoff -a"
+  - name: disable swap in fstab
+    mount:
+      name: swap
+      fstype: swap
+      state: absent
+  - name: k8s repo
+    apt_repository:
+      repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+      state: present
+      filename: kubernetes.list
+  - name: apt update
+    apt:
+      force_apt_get: 'yes'
+      update_cache: 'yes'
+      upgrade: 'yes'
+  - name: k8s dependencies
+    apt:
+      pkg:
+      - apt-transport-https
+      - ca-certificates
+      - parted
+      - kubelet={{ k8s_version }}-00
+      - kubectl={{ k8s_version }}-00
+      - kubeadm={{ k8s_version }}-00
+      - containerd
+      - open-iscsi
+  - name: hold k8s
+    dpkg_selections:
+      name: "{{ item }}"
+      selection: hold
+    with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
+  - name: enable containerd
+    ansible.builtin.systemd:
+      name: containerd.service
+      state: started
+      enabled: true
+      daemon_reload: true
