@@ -1,0 +1,56 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: my-argocd-tls
+  namespace: argocd
+spec:
+  secretName: my-argocd-tls
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  subject:
+    organizations:
+      - homelab
+      - jetstack
+  commonName: argo.home.lab
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - argo.home.lab
+  ipAddresses:
+    - 10.0.0.31
+  issuerRef:
+    name: ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ArgoCD
+metadata:
+  name: my-argocd
+  namespace: argocd
+spec:
+  server:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 125m
+        memory: 128Mi
+    host: s1.home.lab
+    service:
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 10.0.0.31
+      type: LoadBalancer
