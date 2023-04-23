@@ -1,7 +1,7 @@
 - hosts: localhost
   gather_facts: no
   environment:
-    KUBECONFIG: /Users/ysung/.kube/config
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
   - name: download calico operator
     ansible.builtin.get_url:

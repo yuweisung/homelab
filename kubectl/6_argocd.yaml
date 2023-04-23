@@ -1,0 +1,18 @@
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
+  tasks:
+  - name: download argocd operator
+    ansible.builtin.get_url:
+      url: https://operatorhub.io/install/argocd-operator.yaml
+      dest: /tmp/argocd-operator.yaml
+      mode: '0664'
+  - name: apply argocd operator
+    kubernetes.core.k8s:
+      state: present
+      src: /tmp/argocd-operator.yaml 
+  - name: apply argocd cr
+    kubernetes.core.k8s:
+      state: present
+      src: "{{ argocd | default('/Users/ysung/git/homelab/argocd.yaml')}}"

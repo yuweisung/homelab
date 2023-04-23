@@ -1,0 +1,5 @@
+keycloak olm subscription
+kubectl create -f https://operatorhub.io/install/keycloak-operator.yaml
+
+percorna postgresql operator subscription
+kubectl create -f https://operatorhub.io/install/percona-postgresql-operator.yamlccdc

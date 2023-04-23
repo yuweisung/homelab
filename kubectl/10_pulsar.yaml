@@ -1,7 +1,7 @@
 - hosts: localhost
   gather_facts: no
   environment:
-    KUBECONFIG: /Users/ysung/.kube/config
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
   - name: create sn-operator license
     kubernetes.core.k8s:
@@ -25,7 +25,7 @@
   - name: install operators
     kubernetes.core.k8s:
       state: present
-      src: "{{ subscription_yaml | default(/Users/ysung/git/homelab/olm-subscriptions.yaml) }}"
+      src: "{{ subscription_yaml | default('/Users/ysung/git/homelab/olm-subscriptions.yaml') }}"
   # - name: download pulsar cluster cr
   #   ansible.builtin.get_url:
   #     url: https://github.com/streamnative/private-cloud/blob/main/quick-start/pulsar-cluster.yaml
@@ -40,4 +40,4 @@
   - name: deploy pulsar cluster
     kubernetes.core.k8s:
       state: present
-      src: "{{ pulsar_yaml | default(/Users/ysung/git/homelab/pulsar-cluster.yaml) }}"
+      src: "{{ pulsar_yaml | default('/Users/ysung/git/homelab/pulsar-cluster.yaml') }}"
