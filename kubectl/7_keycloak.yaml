@@ -19,22 +19,22 @@
       namespace: keycloak
       state: present
       src: /tmp/keycloaks.k8s.k8s.keycloak.org-v1.yml 
-  - name: download keycloak realm import crd
-    ansible.builtin.get_url:
-      url: https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/{{ keycloak_version }}/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
-      dest: /tmp/keycloakrealmimports.k8s.keycloak.org-v1.yml
-      mode: '0664'
-  - name: apply keycloak realm import crd
-    kubernetes.core.k8s:
-      namespace: keycloak
-      state: present
-      src: /tmp/keycloakrealmimports.k8s.keycloak.org-v1.yml
+  # - name: download keycloak realm import crd
+  #   ansible.builtin.get_url:
+  #     url: https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/{{ keycloak_version }}/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
+  #     dest: /tmp/keycloakrealmimports.k8s.keycloak.org-v1.yml
+  #     mode: '0664'
+  # - name: apply keycloak realm import crd
+  #   kubernetes.core.k8s:
+  #     namespace: keycloak
+  #     state: present
+  #     src: /tmp/keycloakrealmimports.k8s.keycloak.org-v1.yml
   - name: download keycloak operator
     ansible.builtin.get_url:
       url: https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/{{ keycloak_version }}/kubernetes/kubernetes.yml
       dest: /tmp/kubernetes.yml
       mode: '0664'
-  - name: apply keycloak realm import crd
+  - name: apply keycloak operator
     kubernetes.core.k8s:
       state: present
       namespace: keycloak

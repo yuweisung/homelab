@@ -21,6 +21,7 @@
     kubernetes.core.helm:
       name: harbor
       release_namespace: harbor
+      chart_ref: harbor/harbor
       update_repo_cache: true
       values:
         expose:
