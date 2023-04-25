@@ -1,0 +1,63 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kibana-certificate
+  namespace: elastic
+spec:
+  secretName: elastic-home-lab
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  subject:
+    organizations:
+      - homelab
+      - jetstack
+  commonName: elastic.home.lab
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - elastic.home.lab
+  ipAddresses:
+    - 10.0.0.34
+  issuerRef:
+    name: ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: my-ec
+  namespace: elastic
+spec:
+  version: 8.6.2
+  nodeSets:
+  - name: default
+    count: 1
+    config:
+      node.store.allow_mmap: false
+---
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: my-kibana
+  namespace: elastic
+spec:
+  version: 8.6.2
+  count: 1
+  elasticsearchRef:
+    name: my-ec
+    namespace: elastic
+  http:
+    tls:
+      certificate:
+        secretName: elastic-home-lab
+    service:
+      spec:
+        type: LoadBalancer
+        externalName: elastic.home.lab

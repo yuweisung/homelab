@@ -1,0 +1,49 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: keycloak-tls
+  namespace: keycloak
+spec:
+  secretName: kc-home-lab-tls
+  duration: 2160h #90d
+  renewBefore: 360h #15d
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - "kc.home.lab"
+  ipAddresses:
+    - 10.0.0.32
+  issuerRef:
+    name: ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: my-keycloak
+  namespace: keycloak
+  labels:
+    app: sso
+spec:
+  instances: 1
+  db:
+    vendor: postgres
+    host: postgres
+    usernameSecret:
+      name: keycloak-db-secret
+      key: username
+    passwordSecret:
+      name: keycloak-db-secret
+      key: password
+  hostname:
+    admin: "kc.home.lab"
+    hostname: "kc.home.lab"
+  http:
+    tlsSecret: "kc-home-lab-tls"

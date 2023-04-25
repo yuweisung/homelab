@@ -1,3 +1,36 @@
-helm repo add harbor https://helm.goharbor.io
-helm repo update
-helm install -n harbor harbor .
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
+  tasks:
+  - name: add harbor chart
+    kubernetes.core.helm_repository:
+      name: harbor
+      repo_url: https://helm.goharbor.io
+  - name: harbor namespace
+    kubernetes.core.k8s:
+      kind: Namespace
+      name: harbor
+      api_version: v1
+      state: present
+  - name: apply harbor tls
+    kubernetes.core.k8s:
+      state: present
+      src: "{{ harbor | default('/Users/ysung/git/homelab/harbor.yaml')}}"
+  - name: install harbor
+    kubernetes.core.helm:
+      name: harbor
+      release_namespace: harbor
+      update_repo_cache: true
+      values:
+        expose:
+          type: loadBalancer
+          tls:
+            enabled: true
+            certSource: secret
+            secret:
+              secretName: harbor-home-lab
+              notarySecretName: harbor-home-lab
+          loadBalancer:
+            IP: "10.0.0.33"
+        externalURL: https://harbor.home.lab

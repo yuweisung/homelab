@@ -1,5 +1,42 @@
-keycloak olm subscription
-kubectl create -f https://operatorhub.io/install/keycloak-operator.yaml
-
-percorna postgresql operator subscription
-kubectl create -f https://operatorhub.io/install/percona-postgresql-operator.yamlccdc
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
+  tasks:
+  - name: create keycloak namespace
+    kubernetes.core.k8s:
+      name: keycloak
+      api_version: v1
+      kind: Namespace
+      state: present
+  - name: download keycloak crd
+    ansible.builtin.get_url:
+      url: https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/{{ keycloak_version }}/kubernetes/keycloaks.k8s.keycloak.org-v1.yml
+      dest: /tmp/keycloaks.k8s.k8s.keycloak.org-v1.yml
+      mode: '0664'
+  - name: apply keycloak crd
+    kubernetes.core.k8s:
+      namespace: keycloak
+      state: present
+      src: /tmp/keycloaks.k8s.k8s.keycloak.org-v1.yml 
+  - name: download keycloak realm import crd
+    ansible.builtin.get_url:
+      url: https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/{{ keycloak_version }}/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
+      dest: /tmp/keycloakrealmimports.k8s.keycloak.org-v1.yml
+      mode: '0664'
+  - name: apply keycloak realm import crd
+    kubernetes.core.k8s:
+      namespace: keycloak
+      state: present
+      src: /tmp/keycloakrealmimports.k8s.keycloak.org-v1.yml
+  - name: download keycloak operator
+    ansible.builtin.get_url:
+      url: https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/{{ keycloak_version }}/kubernetes/kubernetes.yml
+      dest: /tmp/kubernetes.yml
+      mode: '0664'
+  - name: apply keycloak realm import crd
+    kubernetes.core.k8s:
+      state: present
+      namespace: keycloak
+      src: /tmp/kubernetes.yml
+  
