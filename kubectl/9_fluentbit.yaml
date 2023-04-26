@@ -18,3 +18,27 @@
     kubernetes.core.k8s:
       state: present
       src: /tmp/fluent-operator.yaml
+  - name: retrieve es user secret
+    kubernetes.core.k8s_info:
+      api_version: v1
+      kind: Secret
+      namespace: elastic
+      name: my-ec-es-elastic-user
+    register: ec_user_secret
+  - name: create es user secret
+    kubernetes.core.k8s:
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: my-ec-es-elastic-user
+          namespace: fluent
+        type: Opaque
+        data:
+          user: "{{ 'elastic' | b64encode }}"
+          passwd: "{{ec_user_secret.resources[0].data.elastic }}"
+  - name: apply fluentbit
+    kubernetes.core.k8s:
+      state: present
+      src: "{{ fluent | default('/Users/ysung/git/homelab/fluent.yaml')}}"  
