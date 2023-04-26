@@ -108,6 +108,18 @@ spec:
   es:
     host: my-ec-es-default.elastic.svc.cluster.local
     port: 9200
+    httpUser:
+      valueFrom:
+        secretKeyRef:
+          key: user
+          name: my-ec-es-elastic-user
+    httpPassword:
+      valueFrom:
+        secretKeyRef:
+          key: passwd
+          name: my-ec-es-elastic-user
+    tls:
+      verify: false
     generateID: true
     logstashPrefix: fluent-app-log-fb-only
     logstashFormat: true
