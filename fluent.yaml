@@ -123,4 +123,5 @@ spec:
     generateID: true
     logstashPrefix: fluent-app-log-fb-only
     logstashFormat: true
+    suppressTypeName: "On"
     timeKey: "@timestamp"

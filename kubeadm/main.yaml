@@ -11,7 +11,7 @@
   - name: kube admin config
     fetch:
       src: /etc/kubernetes/admin.conf
-      dest: /Users/ysung/.kube/config
+      dest: "{{ kubeconf | default('/Users/ysung/.kube/config') }}"
       flat: yes
 - hosts: workers
   gather_facts: no
