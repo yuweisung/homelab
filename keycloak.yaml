@@ -24,26 +24,171 @@ spec:
     kind: ClusterIssuer
     group: cert-manager.io
 ---
-apiVersion: k8s.keycloak.org/v2alpha1
-kind: Keycloak
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: my-keycloak
+  name: sn-lab-realm
+  namespace: keycloak
+data:
+  realm.json: |
+    {
+      "realm": "sn-lab",
+      "enabled": true,
+      "users": [
+        {
+          "username": "pulsaradmin",
+          "enabled": true,
+          "credentials": [
+            {
+              "type": "password",
+              "value": "changeme"
+            }
+          ],
+          "realmRoles": [
+            "admin"
+          ]
+        }
+      ],
+      "roles": {
+        "realm": [
+          {
+            "name": "user",
+            "description": "User privileges"
+          },
+          {
+            "name": "admin",
+            "description": "Administrator privileges"
+          }
+        ]
+      },
+      "defaultRoles": [
+        "user"
+      ],
+      "clients": [
+        {
+          "clientId": "app",
+          "enabled": true,
+          "publicClient": true,
+          "redirectUris": [
+            "*"
+          ],
+          "webOrigins": [
+            "*"
+          ]
+        },
+        {
+          "clientId": "demo-mutual-tls",
+          "enabled": true,
+          "publicClient": false,
+          "clientAuthenticatorType": "client-x509",
+          "redirectUris": [
+            "*"
+          ],
+          "webOrigins": [
+            "*"
+          ],
+          "attributes": {
+            "x509.subjectdn": "CN=demo-mutual-tls-keycloak.*"
+          }
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: keycloak
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 10.0.0.32
+  labels:
+    app: keycloak
+spec:
+  ports:
+  - name: https
+    port: 8443
+    targetPort: 8443
+  selector:
+    app: keycloak
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
   namespace: keycloak
   labels:
-    app: sso
+    app: keycloak
 spec:
-  instances: 1
-  db:
-    vendor: postgres
-    host: postgres
-    usernameSecret:
-      name: keycloak-db-secret
-      key: username
-    passwordSecret:
-      name: keycloak-db-secret
-      key: password
-  hostname:
-    admin: "kc.home.lab"
-    hostname: "kc.home.lab"
-  http:
-    tlsSecret: "kc-home-lab-tls"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        image: quay.io/keycloak/keycloak:latest
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: 500m
+          requests:
+            memory: "256Mi"
+            cpu: 500m
+        args: ["start", "--import-realm", "--cache-stack=kubernetes"]
+        volumeMounts:
+        - name: certs
+          mountPath: "/etc/certs"
+          readOnly: true
+        - name: realm-config
+          mountPath: /opt/keycloak/data/import
+          readOnly: true
+        env:
+        - name: KEYCLOAK_ADMIN
+          value: "admin"
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          value: "admin"
+        - name: KC_HTTPS_CERTIFICATE_FILE
+          value: "/etc/certs/tls.crt"
+        - name: KC_HTTPS_CERTIFICATE_KEY_FILE
+          value: "/etc/certs/tls.key"
+        - name: KC_HEALTH_ENABLED
+          value: "true"
+        - name: KC_HOSTNAME
+          value: "kc.home.lab"
+        - name: KC_DB
+          value: "postgres"
+        - name: KC_DB_URL
+          value: "jdbc:postgresql://keycloak-postgresql/postgres"
+        - name: KC_DB_USERNAME
+          value: "postgres"
+        - name: KC_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-postgresql
+              key: postgres-password
+        - name: jgroups.dns.query
+          value: keycloak
+        ports:
+        - name: jgroups
+          containerPort: 7600
+        - name: https
+          containerPort: 8443
+        readinessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 1
+          httpGet:
+            scheme: HTTPS
+            path: /realms/master
+            port: 8443
+      volumes:
+      - name: certs
+        secret:
+          secretName: kc-home-lab-tls
+      - name: realm-config
+        configMap:
+          name: sn-lab-realm

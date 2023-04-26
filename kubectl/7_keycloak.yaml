@@ -9,34 +9,17 @@
       api_version: v1
       kind: Namespace
       state: present
-  - name: download keycloak crd
-    ansible.builtin.get_url:
-      url: https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/{{ keycloak_version }}/kubernetes/keycloaks.k8s.keycloak.org-v1.yml
-      dest: /tmp/keycloaks.k8s.k8s.keycloak.org-v1.yml
-      mode: '0664'
-  - name: apply keycloak crd
-    kubernetes.core.k8s:
-      namespace: keycloak
-      state: present
-      src: /tmp/keycloaks.k8s.k8s.keycloak.org-v1.yml 
-  # - name: download keycloak realm import crd
-  #   ansible.builtin.get_url:
-  #     url: https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/{{ keycloak_version }}/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
-  #     dest: /tmp/keycloakrealmimports.k8s.keycloak.org-v1.yml
-  #     mode: '0664'
-  # - name: apply keycloak realm import crd
-  #   kubernetes.core.k8s:
-  #     namespace: keycloak
-  #     state: present
-  #     src: /tmp/keycloakrealmimports.k8s.keycloak.org-v1.yml
-  - name: download keycloak operator
-    ansible.builtin.get_url:
-      url: https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/{{ keycloak_version }}/kubernetes/kubernetes.yml
-      dest: /tmp/kubernetes.yml
-      mode: '0664'
-  - name: apply keycloak operator
+  - name: add bitnami chart
+    kubernetes.core.helm_repository:
+      name: bitnami
+      repo_url: https://charts.bitnami.com/bitnami
+  - name: install postgresql
+    kubernetes.core.helm:
+      name: keycloak
+      release_namespace: keycloak
+      chart_ref: bitnami/postgresql
+      update_repo_cache: true
+  - name: apply keycloak deploy
     kubernetes.core.k8s:
       state: present
-      namespace: keycloak
-      src: /tmp/kubernetes.yml
-  
+      src: "{{ keycloak | default('/Users/ysung/git/homelab/keycloak.yaml')}}"  

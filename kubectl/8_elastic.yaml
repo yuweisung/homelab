@@ -18,7 +18,8 @@
     kubernetes.core.k8s:
       state: present
       src: /tmp/elastic-operator.yaml
-  - name: apply argocd cr
+  #wait for 30s
+  - name: apply elastic cr
     kubernetes.core.k8s:
       state: present
-      src: "{{ elastic | default('/Users/ysung/git/homelab/elastic.yaml')}}"
+      src: "{{ elastic | default('/Users/ysung/git/homelab/elastic.yaml')}}"  
