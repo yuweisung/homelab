@@ -1,0 +1,36 @@
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
+  tasks:
+  - name: create vault namespace
+    kubernetes.core.k8s:
+      name: vault
+      api_version: v1
+      kind: Namespace
+      state: present
+  - name: add banzai vault chart
+    kubernetes.core.helm_repository:
+      name: banzai
+      repo_url: https://kubernetes-charts.banzaicloud.com
+  - name: install vault-operator
+    kubernetes.core.helm:
+      name: vault-operator
+      release_namespace: vault
+      chart_ref: banzai/vault-operator
+      update_repo_cache: true
+  - name: download vault rbac
+    ansible.builtin.get_url:
+      url: https://raw.githubusercontent.com/banzaicloud/bank-vaults/master/operator/deploy/rbac.yaml
+      dest: /tmp/vault-rbac.yaml
+      mode: '0664'
+  - name: apply vault rbac
+    kubernetes.core.k8s:
+      state: present
+      src: /tmp/vault-rbac.yaml
+      namespace: vault
+  - name: apply vault cr
+    kubernetes.core.k8s:
+      state: present
+      namespace: vault
+      src: "{{ vault | default('/Users/ysung/git/homelab/vault-cr.yaml') }}"  
