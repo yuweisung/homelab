@@ -1,0 +1,12 @@
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
+  tasks:
+  - name: install istio-operator
+    ansible.builtin.shell: |
+      istioctl install --set profile=minimal --skip-confirmation
+  - name: install customized gateway
+    kubernetes.core.k8s:
+      state: present
+      src: "{{ istio | default('/Users/ysung/git/homelab/istio.yaml')}}"

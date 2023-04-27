@@ -1,0 +1,84 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pulsar-gateway-certificate
+  namespace: istio-system
+spec:
+  secretName: pulsar-home-lab-tls
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  subject:
+    organizations:
+      - homelab
+      - jetstack
+  commonName: pulsar.home.lab
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - pulsar.home.lab
+    - '*pulsar.home.lab'
+  ipAddresses:
+    - 10.0.0.35
+  issuerRef:
+    name: ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: pulsar-ingress-gateway
+  namespace: istio-system
+spec:
+  profile: empty
+  components:
+    ingressGateways:
+      - namespace: istio-system
+        name: pulsar-ingressgateway
+        enabled: true
+        label:
+          istio: ingressgateway
+        k8s:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 160Mi
+            limits:
+              cpu: 100m
+              memory: 160Mi
+          service:
+            type: LoadBalancer
+            loadBalancerIP: 10.0.0.35
+            ports:
+              - port: 15021
+                targetPort: 15021
+                name: status-port
+                protocol: TCP
+              - port: 15012
+                targetPort: 15012
+                name: tcp-istiod
+                protocol: TCP
+              - port: 9093
+                targetPort: 9093
+                name: tcp-kop
+                protocol: TCP
+              - port: 6651
+                targetPort: 6651
+                name: tls-pulsar
+                protocol: TCP
+              - port: 443
+                targetPort: 8443
+                name: https
+                protocol: TCP
+              - port: 8883
+                targetPort: 8883
+                name: tcp-mop
+              - port: 5671
+                targetPort: 5671
+                name: tcp-aop
