@@ -17,20 +17,20 @@
         type: Opaque
         stringData:
           license: "{{ lookup('file', '/Users/ysung/git/homelab/sn-license.txt')}}"
-  # - name: download subscriptions
-  #   ansible.builtin.get_url:
-  #     url: https://github.com/streamnative/private-cloud/blob/main/quick-start/olm-subscriptions.yaml
-  #     dest: /tmp/olm-subscriptions.yaml
-  #     mode: '0664'
+  - name: download subscriptions
+    ansible.builtin.get_url:
+      url: https://github.com/streamnative/private-cloud/blob/main/quick-start/olm-subscriptions.yaml
+      dest: /tmp/olm-subscriptions.yaml
+      mode: '0664'
   - name: install operators
     kubernetes.core.k8s:
       state: present
       src: "{{ subscription_yaml | default('/Users/ysung/git/homelab/olm-subscriptions.yaml') }}"
-  # - name: download pulsar cluster cr
-  #   ansible.builtin.get_url:
-  #     url: https://github.com/streamnative/private-cloud/blob/main/quick-start/pulsar-cluster.yaml
-  #     dest: /tmp/pulsar-cluster.yaml
-  #     mode: '0644'
+  - name: download pulsar cluster cr
+    ansible.builtin.get_url:
+      url: https://github.com/streamnative/private-cloud/blob/main/quick-start/pulsar-cluster.yaml
+      dest: /tmp/pulsar-cluster.yaml
+      mode: '0644'
   - name: create pulsar namespace
     kubernetes.core.k8s:
       kind: Namespace
