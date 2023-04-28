@@ -3,15 +3,28 @@
   environment:
     KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
-  - name: download cert-manager
-    ansible.builtin.get_url:
-      url: https://github.com/cert-manager/cert-manager/releases/download/{{ certmanager_version }}/cert-manager.yaml
-      dest: /tmp/cert-manager.yaml
-      mode: '0644'
-  - name: apply cert-manager
+  - name: add banzai vault chart
+    kubernetes.core.helm_repository:
+      name: jetstack
+      repo_url: https://kcharts.jetstack.io
+  - name: create cert-manager namespace
     kubernetes.core.k8s:
+      name: cert-manager
+      api_version: v1
+      kind: Namespace
       state: present
-      src: /tmp/cert-manager.yaml
+  - name: install cert-manager
+    kubernetes.core.helm:
+      name: cm
+      release_namespace: cert-manager
+      chart_ref: jetstack/cert-manager
+      update_repo_cache: true
+  - name: install cert-manager-csi
+    kubernetes.core.helm:
+      name: cm
+      release_namespace: cert-manager-csi
+      chart_ref: jetstack/cert-manager-csi-driver
+      update_repo_cache: true
   - name: create ca secret
     ansible.builtin.shell: |
       kubectl create secret tls ca-secret -n cert-manager --key={{ root_key }} --cert={{ root_crt }}
