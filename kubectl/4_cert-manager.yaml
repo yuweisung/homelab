@@ -21,9 +21,15 @@
       update_repo_cache: true
   - name: install cert-manager-csi
     kubernetes.core.helm:
-      name: cm
-      release_namespace: cert-manager-csi
+      name: cm-csi
+      release_namespace: cert-manager
       chart_ref: jetstack/cert-manager-csi-driver
+      update_repo_cache: true
+  - name: install trust-manager
+    kubernetes.core.helm:
+      name: tm
+      release_namespace: cert-manager
+      chart_ref: jetstack/trust-manager
       update_repo_cache: true
   - name: create ca secret
     ansible.builtin.shell: |
