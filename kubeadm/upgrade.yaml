@@ -1,0 +1,44 @@
+- hosts: master
+  gather_facts: no
+  become: yes
+  serial: 1
+  tasks:
+  - name: install new kubeadm packages
+    shell: apt-get install -y --allow-change-held-packages kubeadm="{{ kube_version }}-00"
+  - name: upgrade kubeadm
+    shell: kubeadm upgrade apply v{{ kube_version }} -y
+  - name: localaction-drain {{ inventory_hostname }}
+    become: false
+    local_action: ansible.builtin.command kubectl drain {{ inventory_hostname }} --ignore-daemonsets
+  - name: install new kubelet and kubectl
+    shell: apt-get install -y --allow-change-held-packages kubelet="{{ kube_version }}-00" kubectl="{{ kube_version }}-00"
+  - name: restart kubelet
+    systemd:
+      name: kubelet
+      state: restarted
+      daemon_reload: yes
+  - name: localaction-uncordon {{ inventory_hostname }}
+    become: false
+    local_action: ansible.builtin.command kubectl uncordon {{ inventory_hostname }}
+- hosts: worker
+  gather_facts: no
+  become: yes
+  serial: 1
+  tasks:
+  - name: install new kubeadm packages
+    shell: apt-get install -y --allow-change-held-packages kubeadm="{{ kube_version }}-00"
+  - name: upgrade kubeadm
+    shell: kubeadm upgrade node
+  - name: localaction-drain {{ inventory_hostname }}
+    become: false
+    local_action: ansible.builtin.command kubectl drain {{ inventory_hostname }} --ignore-daemonsets --delete-emptydir-data --disable-eviction
+  - name: install new kubelet and kubectl
+    shell: apt-get install -y --allow-change-held-packages kubelet="{{ kube_version }}-00" kubectl="{{ kube_version }}-00"
+  - name: restart kubelet
+    systemd:
+      name: kubelet
+      state: restarted
+      daemon_reload: yes
+  - name: localaction-uncordon {{ inventory_hostname }}
+    become: false
+    local_action: ansible.builtin.command kubectl uncordon {{ inventory_hostname }}
