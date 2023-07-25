@@ -1,46 +1,13 @@
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: pulsar-gateway-certificate
-  namespace: istio-system
-spec:
-  secretName: pulsar-home-lab-tls
-  duration: 2160h # 90d
-  renewBefore: 360h # 15d
-  subject:
-    organizations:
-      - homelab
-      - jetstack
-  commonName: pulsar.home.lab
-  isCA: false
-  privateKey:
-    algorithm: RSA
-    encoding: PKCS1
-    size: 2048
-  usages:
-    - server auth
-    - client auth
-  dnsNames:
-    - pulsar.home.lab
-    - '*.pulsar.home.lab'
-  ipAddresses:
-    - 10.0.0.35
-  issuerRef:
-    name: ca-issuer
-    kind: ClusterIssuer
-    group: cert-manager.io
----
 apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 metadata:
-  name: pulsar-ingress-gateway
-  namespace: istio-system
+  name: ingress-gateway
 spec:
   profile: empty
   components:
     ingressGateways:
       - namespace: istio-system
-        name: pulsar-ingressgateway
+        name: ingressgateway
         enabled: true
         label:
           istio: ingressgateway
@@ -50,8 +17,8 @@ spec:
               cpu: 100m
               memory: 160Mi
             limits:
-              cpu: 100m
-              memory: 160Mi
+              cpu: 200m
+              memory: 256Mi
           service:
             type: LoadBalancer
             loadBalancerIP: 10.0.0.35
@@ -71,6 +38,8 @@ spec:
               - port: 6651
                 targetPort: 6651
                 name: tls-pulsar
+                protocol: TCP
+                name: http
                 protocol: TCP
               - port: 443
                 targetPort: 8443

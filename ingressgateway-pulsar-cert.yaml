@@ -1,0 +1,31 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pulsar-gateway-certificate
+  namespace: istio-system
+spec:
+  secretName: pulsar-home-lab-tls
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  subject:
+    organizations:
+      - homelab
+      - jetstack
+  commonName: pulsar.home.lab
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - pulsar.home.lab
+    - '*.pulsar.home.lab'
+  ipAddresses:
+    - 10.0.0.35
+  issuer Ref:
+    name: ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
