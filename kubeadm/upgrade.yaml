@@ -6,6 +6,14 @@
   tasks:
   - name: install new kube packages
     shell: apt-get install -y --allow-change-held-packages --allow-downgrades kubeadm="{{ k8s_version }}-00" kubelet="{{ k8s_version }}-00" kubectl="{{ k8s_version }}-00"
+  - name: hold k8s
+    dpkg_selections:
+      name: "{{ item }}"
+      selection: hold
+    with_items:
+    - kubelet
+    - kubeadm
+    - kubectl
   - name: upgrade kubeadm
     shell: kubeadm upgrade apply v{{ k8s_version }} -y
   - name: localaction-drain {{ inventory_hostname }}
