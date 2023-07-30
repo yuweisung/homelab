@@ -21,6 +21,13 @@
         dest: /etc/sysctl.d/50-k8s.conf
       - src: apt-key.gpg
         dest: /etc/apt/trusted.gpg.d/google-apt.gpg
+  - name: modprobe
+    community.general.modprobe:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - overlay
+      - br_netfilter
   - name: sysctl
     sysctl:
       name: "{{ item }}"
@@ -49,6 +56,7 @@
       upgrade: 'yes'
   - name: k8s dependencies
     apt:
+      allow_change_held_packages: true
       pkg:
       - apt-transport-https
       - ca-certificates
