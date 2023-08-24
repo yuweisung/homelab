@@ -3,40 +3,40 @@
   environment:
     KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
-  - name: add banzai vault chart
+  - name: add jetstack
     kubernetes.core.helm_repository:
       name: jetstack
       repo_url: https://kcharts.jetstack.io
+    ignore_errors: true
   - name: create cert-manager namespace
     kubernetes.core.k8s:
       name: cert-manager
       api_version: v1
       kind: Namespace
       state: present
-  - name: install cert-manager
-    kubernetes.core.helm:
-      name: cm
-      release_namespace: cert-manager
-      chart_ref: jetstack/cert-manager
-      update_repo_cache: true
-  - name: install cert-manager-csi
-    kubernetes.core.helm:
-      name: cm-csi
-      release_namespace: cert-manager
-      chart_ref: jetstack/cert-manager-csi-driver
-      update_repo_cache: true
-  - name: install trust-manager
-    kubernetes.core.helm:
-      name: tm
-      release_namespace: cert-manager
-      chart_ref: jetstack/trust-manager
-      update_repo_cache: true
   - name: create ca secret
     ansible.builtin.shell: |
       kubectl create secret tls ca-secret -n cert-manager --key={{ root_key }} --cert={{ root_crt }}
+    ignore_errors: true
+  - name: install cert-manager
+    ansible.builtin.shell: |
+      kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/{{ cm_version }}/cert-manager.yaml
+    # kubernetes.core.helm:
+    #   name: cm
+    #   release_namespace: cert-manager
+    #   chart_ref: jetstack/cert-manager
+    #   update_repo_cache: true
+  # - name: install cert-manager-csi
+  #   kubernetes.core.helm:
+  #     name: cm-csi
+  #     release_namespace: cert-manager
+  #     chart_ref: jetstack/cert-manager-csi-driver
+  #     update_repo_cache: true
+  - name: wait for webhook
+    ansible.builtin.wait_for:
+      timeout: 30
   - name: create cluster issuer
     kubernetes.core.k8s:
-      state: present
       definition:    
         apiVersion: cert-manager.io/v1
         kind: ClusterIssuer
@@ -45,3 +45,9 @@
         spec:
           ca:
             secretName: ca-secret
+  # - name: install trust-manager
+  #   kubernetes.core.helm:
+  #     name: tm
+  #     release_namespace: cert-manager
+  #     chart_ref: jetstack/cert-manager-trust
+  #     update_repo_cache: true

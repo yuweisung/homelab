@@ -77,6 +77,8 @@ spec:
   pod:
     securityContext:
       runAsNonRoot: true
+  #config:
+    #webSocketServiceEnabled: true
 ---
 apiVersion: pulsar.streamnative.io/v1alpha1
 kind: PulsarProxy
@@ -94,6 +96,17 @@ spec:
         memory: 512Mi
     securityContext:
       runAsNonRoot: true
+  configurationStoreServers: zookeepers-zk:2181
+  dnsNames:
+    - s1.home.lab
+  webSocketServiceEnabled: true
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: ca-issuer
+  config:
+    tls:
+      enabled: true
 ---
 apiVersion: k8s.streamnative.io/v1alpha1
 kind: SNConsole

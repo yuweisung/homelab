@@ -3,26 +3,38 @@
   environment:
     KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
+  - name: download metallb
+    ansible.builtin.get_url:
+      url: "{{ item.url }}"
+      dest: "{{ item.dest }}"
+      mode: '0664'
+    loop:
+      - url: https://github.com/rook/rook/tree/release-{{ rook }}/deploy/examples/crds.yaml
+        dest: /tmp/crds.yaml
+      - url: https://github.com/rook/rook/tree/release-{{ rook }}/deploy/examples/common.yaml
+        dest: /tmp/common.yaml
+      - url: https://github.com/rook/rook/tree/release-{{ rook }}/deploy/examples/operator.yaml
+        dest: /tmp/operator.yaml
   - name: rook-ceph crd
     kubernetes.core.k8s:
       state: present
       src: "{{ item }}"
     with_items:
-      - ~/git/rook/deploy/examples/crds.yaml
-      - ~/git/rook/deploy/examples/common.yaml
-      - ~/git/rook/deploy/examples/operator.yaml
+      - /tmp/crds.yaml
+      - /tmp/common.yaml
+      - /tmp/operator.yaml
   - name: rook-ceph cluster
     kubernetes.core.k8s:
       state: present
-      src: ~/git/rook/deploy/examples/cluster.yaml 
+      src: ~/git/homelab/cluster.yaml 
   - name: rook-ceph block storage
     kubernetes.core.k8s:
       state: present
-      src: ~/git/rook/deploy/examples/csi/rbd/storageclass.yaml 
+      src: ~/git/homelab/storageclass.yaml 
   - name: set default storage class
     ansible.builtin.shell: |
       kubectl patch storageclass rook-ceph-block -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
   - name: rook-ceph toolbox
     kubernetes.core.k8s:
       state: present
-      src: ~/git/rook/deploy/examples/toolbox.yaml
+      src: ~/git/homelab/toolbox.yaml

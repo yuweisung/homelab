@@ -8,10 +8,20 @@
       url: https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/tigera-operator.yaml
       dest: /tmp/tigera-operator.yaml
       mode: '0664'
+  - name: create tigera-operator namespace
+    kubernetes.core.k8s:
+      name: tigera-operator
+      api_version: v1
+      kind: Namespace
+      state: present
+  - name: k8s-api endpoint
+    kubernetes.core.k8s:
+      state: present
+      src: /Users/ysung/git/homelab/k8s-api-endpoint-cm.yaml
   - name: apply tigera-operator
     kubernetes.core.k8s:
       state: present
-      src: /tmp/tigera-operator.yaml  
+      src: /tmp/tigera-operator.yaml
   - name: download calico custom resource
     ansible.builtin.get_url:
       url: https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/custom-resources.yaml
@@ -21,3 +31,7 @@
     kubernetes.core.k8s:
       state: present
       src: /tmp/custom-resources.yaml
+  - name: patch dataplane
+    ansible.builtin.shell: |
+      kubectl patch installation.operator.tigera.io default --type merge -p '{"spec":{"calicoNetwork":{"linuxDataplane":"BPF", "hostPorts":null}}}'
+      

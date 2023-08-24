@@ -3,6 +3,10 @@
   environment:
     KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
+  - name: operator-sdk
+    ansible.builtin.shell: |
+      operator-sdk olm install
+    ignore_errors: true
   - name: create sn-operator license
     kubernetes.core.k8s:
       state: present
@@ -17,11 +21,12 @@
         type: Opaque
         stringData:
           license: "{{ lookup('file', '/Users/ysung/git/homelab/sn-license.txt')}}"
-  # - name: download subscriptions
-  #   ansible.builtin.get_url:
-  #     url: https://github.com/streamnative/private-cloud/blob/main/quick-start/olm-subscriptions.yaml
-  #     dest: /tmp/olm-subscriptions.yaml
-  #     mode: '0664'
+  - name: download subscriptions
+    ansible.builtin.get_url:
+      url: https://github.com/streamnative/private-cloud/blob/main/quick-start/olm-subscriptions.yaml
+      dest: /tmp/olm-subscriptions.yaml
+      mode: '0664'
+    ignore_errors: true
   - name: install operators
     kubernetes.core.k8s:
       state: present

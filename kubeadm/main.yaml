@@ -1,13 +1,11 @@
 - hosts: master
   gather_facts: yes
   become: yes
-  vars:
-
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
   tasks:
   - name: kubeadm init
-    shell: kubeadm init --pod-network-cidr {{ pod_cidr }} --apiserver-advertise-address {{ api_adv_addr }} --apiserver-cert-extra-sans {{ extra_sans}}
+    shell: kubeadm init --skip-phases=addon/kube-proxy --pod-network-cidr {{ pod_cidr }} --apiserver-advertise-address {{ api_adv_addr }} --apiserver-cert-extra-sans {{ extra_sans}}
   - name: kube admin config
     fetch:
       src: /etc/kubernetes/admin.conf

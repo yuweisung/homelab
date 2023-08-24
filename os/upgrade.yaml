@@ -14,7 +14,7 @@
     - kubeadm
     - kubectl
   - name: upgrade all apt packages
-    apt: upgrade=dist
+    apt: upgrade=yes
   - name: check reboot
     register: reboot_required_file
     stat: path=/var/run/reboot-required get_md5=no
