@@ -3,7 +3,7 @@ components:
   functions: false
   streamnative_console: false
   pulsar_detector: false
-  proxy: false
+  toolset: true
 monitoring:
   prometheus: false
   grafana: false
@@ -131,12 +131,28 @@ images:
     repository: registry.k8s.io/external-dns/external-dns
     tag: "v0.7.3"
     pullPolicy: IfNotPresent
-
+tls:
+  enabled: true
+  common:
+    caSecretName: root-secret
+  proxy:
+    enabled: true
+    certSecretName: tls-proxy
+    untrustedCa: true
+  broker:
+    enabled: true
+    cert_name: tls-broker
+    trustCertsEnabled: true
+  toolset:
+    certSecretName: test1-admin
 auth:
   authentication:
-    enabled: false
+    enabled: true
+    provider: "tls"
+    tls:
+      enabled: true
   authorization:
-    enabled: false
+    enabled: true
   vault:
     enabled: false
 
@@ -148,27 +164,34 @@ zookeeper:
   jvm:
     memoryOptions:
     - >
-      -XX:MaxRamPercentage=85
+      -XX:MaxRAMPercentage=85
     gcOptions:
     - >
       -XX:+UseZGC
       -Djute.maxbuffer=10485760
       -Dzookeeper.forceSync=no
+      -XX:-ZUncommit
 
 bookkeeper:
   resources:
     requests:
       memory: "512Mi"
       cpu: "0.5"
+  configData:
+    PULSAR_PREFIX_dbStorage_directIOEntryLogger: "true"
   jvm:
     memoryOptions:
     - >
-      -XX:MaxRamPercentage=45
+      -XX:MaxRAMPercentage=45
     gcOptions:
     - >
       -XX:+UseZGC
       -Djute.maxbuffer=10485760
       -XX:-ResizePLAB
+      -XX:-ZUncommit
+  operator:
+    loadManagerClassName: "org.apache.pulsar.broker.loadbalance.extensions.ExtensibleLoadManagerImpl"
+    loadBalancerLoadSheddingStrategy: "org.apache.pulsar.broker.loadbalance.extensions.scheduler.TransferShedder"
 
 autorecovery:
   resources:
@@ -178,14 +201,17 @@ autorecovery:
   jvm:
     memoryOptions:
     - >
-      -XX:MaxRamPercentage=45
+      -XX:MaxRAMPercentage=45
     gcOptions:
     - >
       -XX:+UseZGC
       -Djute.maxbuffer=10485760
       -XX:-ResizePLAB
+      -XX:-ZUncommit
 
 broker:
+  kop:
+    enabled: false
   resources:
     requests:
       memory: "512Mi"
@@ -193,22 +219,73 @@ broker:
   jvm:
     memoryOptions:
     - >
-      -XX:MaxRamPercentage=45
+      -XX:MaxRAMPercentage=45
     gcOptions:
     - >
       -XX:+UseZGC
       -Djute.maxbuffer=10485760
+      -XX:-ZUncommit
+  # extraSecretRefs:
+  # - mountPath: /pulsar/certs/client-ca
+  #   secretName: "root-secret"
+  # - mountPath: /pulsar/certs/admin
+  #   secretName: "test1-admin"
   configData:
     managedLedgerDefaultEnsembleSize: "3"
     managedLedgerDefaultWriteQuorum: "2"
     managedLedgerDefaultAckQuorum: "2"
     webSocketServiceEnabled: "true"
-  
+    #brokerServicePortTLS: 6651
+    #webServicePortTls: 8081
+    tlsTrustCertsFilePath: /etc/tls/pulsar-broker/ca.crt
+    tlsCertificateFilePath: /etc/tls/pulsar-broker/tls.crt
+    tlsKeyFilePath: /etc/tls/pulsar-broker/tls.key
+    #tlsRequireTrustedClientCertOnConnect: "true"
+    brokerClientTlsEnabled: "true"
+    brokerClientTrustCertsFilePath: "/etc/tls/pulsar-broker/ca.crt"
+    #brokerClientCertificateFilePath: /pulsar/certs/admin.crt
+    #brokerClientKeyFilePath: /pulsar/certs/admin.key
+    brokerClientAuthenticationPlugin: "org.apache.pulsar.client.impl.auth.AuthenticationTls"
+    brokerClientAuthenticationParamerters: "{\"tlsCertFile\":\"/pulsar/certs/admin/tls.crt\",\"tlsKeyFile\":\"/pulsar/certs/admin/tls.key\"}"
+
+proxy:
+  tlsSecretName: 
+  # extraSecretRefs:
+  # - mountPath: /pulsar/certs/client-ca
+  #   secretName: "root-secret"
+  # - mountPath: /pulsar/certs/admin
+  #   secretName: "test1-admin"
+  # - mountPath: /pulsar/certs/broker
+  #   secretName: "test1-tls-broker"
+  configData:
+    metadataStoreUrl: test1-sn-platform-zookeeper
+    #servicePortTls: 6651
+    #webServicePortTls: 8081
+    #tlsTrustCertsFilePath: /pulsar/certs/ca/ca.crt
+    #tlsCertificateFilePath: /pulsar/certs/proxy/tls.crt
+    #tlsKeyFilePath: /pulsar/certs/proxy/key.crt
+    #tlsRequireTrustedClientCertOnConnect: true
+    tlsEnabledWithBroker: "true"
+    brokerClientTrustCertsFilePath: "/pulsar/certs/client-ca"
+    #brokerClientCertificateFilePath: /pulsar/certs/proxy/tls.crt
+    #brokerClientKeyFilePath: /pulsar/certs/proxy/tls.key
+    brokerClientAuthenticationPlugin: "org.apache.pulsar.client.impl.auth.AuthenticationTls"
+    brokerClientAuthenticationParamerters: "{\"tlsCertFile\":\"/pulsar/certs/admin/tls.crt\",\"tlsKeyFile\":\"/pulsar/certs/admin/tls.key\"}"
+
 toolset:
+  useProxy: true
   resources:
     requests:
       memory: 256Mi
       cpu: 1
+  # extraSecretRefs:
+  # - mountPath: /pulsar/certs/client-ca
+  #   secretName: "root-secret"
+  # - mountPath: /pulsar/certs/admin
+  #   secretName: "test1-admin"
   configData:
     PULSAR_MEM: >
-      -XX:MaxRamPercentage=45
+      -XX:MaxRAMPercentage=45
+    brokerClientTrustCertsFilePath: "/pulsar/certs/client-ca"
+    brokerClientAuthenticationPlugin: "org.apache.pulsar.client.impl.auth.AuthenticationTls"
+    brokerClientAuthenticationParamerters: "{\"tlsCertFile\":\"/pulsar/certs/admin/tls.crt\",\"tlsKeyFile\":\"/pulsar/certs/admin/tls.key\"}"

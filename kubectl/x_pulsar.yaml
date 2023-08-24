@@ -7,6 +7,10 @@
     ansible.builtin.shell: |
       operator-sdk olm install
     ignore_errors: true
+  - name: install operators
+    kubernetes.core.k8s:
+      state: present
+      src: "{{ subscription_yaml | default('/Users/ysung/git/homelab/olm-subscriptions.yaml') }}"
   - name: create sn-operator license
     kubernetes.core.k8s:
       state: present
@@ -21,32 +25,12 @@
         type: Opaque
         stringData:
           license: "{{ lookup('file', '/Users/ysung/git/homelab/sn-license.txt')}}"
-  - name: download subscriptions
-    ansible.builtin.get_url:
-      url: https://github.com/streamnative/private-cloud/blob/main/quick-start/olm-subscriptions.yaml
-      dest: /tmp/olm-subscriptions.yaml
-      mode: '0664'
-    ignore_errors: true
-  - name: install operators
-    kubernetes.core.k8s:
-      state: present
-      src: "{{ subscription_yaml | default('/Users/ysung/git/homelab/olm-subscriptions.yaml') }}"
-  # - name: download pulsar cluster cr
-  #   ansible.builtin.get_url:
-  #     url: https://github.com/streamnative/private-cloud/blob/main/quick-start/pulsar-cluster.yaml
-  #     dest: /tmp/pulsar-cluster.yaml
-  #     mode: '0644'
+  - name: wait for ...
+    ansible.builtin.wait_for:
+      timeout: 30
   - name: create pulsar namespace
     kubernetes.core.k8s:
       kind: Namespace
       name: pulsar
       api_version: v1
       state: present
-  # - name: deploy pulsar cluster
-  #   kubernetes.core.k8s:
-  #     state: present
-  #     src: "{{ pulsar_yaml | default('/Users/ysung/git/homelab/pulsar-cluster.yaml') }}"
-  # - name: deploy function
-  #   kubernetes.core.k8s:
-  #     state: present
-  #     src: "{{ pulsar_yaml | default('/Users/ysung/git/homelab/pulsar-cluster.yaml') }}"

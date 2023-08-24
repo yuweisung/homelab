@@ -12,6 +12,9 @@
     kubernetes.core.k8s:
       state: present
       src: /tmp/metallb-native.yaml
+  - name: wait for ...
+    ansible.builtin.wait_for:
+      timeout: 30
   - name: apply pool
     kubernetes.core.k8s:
       state: present
@@ -24,6 +27,9 @@
         spec:
           addresses:
           - "{{ ip_range }}"
+  - name: wait for ...
+    ansible.builtin.wait_for:
+      timeout: 30
   - name: apply l2_advertisement
     kubernetes.core.k8s:
       state: present

@@ -9,6 +9,7 @@ spec:
   name: zookeeper-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
+  startingCSV: v0.11.7
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -20,6 +21,7 @@ spec:
   name: bookkeeper-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
+  startingCSV: v0.11.7
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -31,6 +33,7 @@ spec:
   name: pulsar-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
+  startingCSV: v0.11.7
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -42,6 +45,7 @@ spec:
   name: function-mesh
   source: operatorhubio-catalog
   sourceNamespace: olm
+  startingCSV: v0.11.7
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -53,3 +57,4 @@ spec:
   name: sn-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
+  startingCSV: v0.11.7

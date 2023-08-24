@@ -20,21 +20,7 @@
     - /var/lib/rook/
     - /var/lib/kubelet/plugins
     - /var/lib/kubelet/plugins_registry
-- hosts: master,nuc9.home.lab
-  gather_facts: no
-  become: yes
-  tasks:
-  - name: teardown ssd blk
-    shell: |
-      blkdiscard {{ item }} -f
-      partprobe {{ item }}
-    with_items:
-    - /dev/mapper/vgubuntu-rook
-  - name: remove disk lock
-    shell: |
-      ls /dev/mapper/ceph-* | xargs -I% -- dmsetup remove_all --force %
-      rm -rf /dev/ceph-* /dev/mapper/ceph--* /dev/rbd*
-- hosts: w[1-4].home.lab,p3.home.lab
+- hosts: workers
   gather_facts: no
   become: yes
   tasks:

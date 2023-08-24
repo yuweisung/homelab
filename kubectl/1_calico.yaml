@@ -31,7 +31,7 @@
     kubernetes.core.k8s:
       state: present
       src: /tmp/custom-resources.yaml
-  - name: patch dataplane
-    ansible.builtin.shell: |
-      kubectl patch installation.operator.tigera.io default --type merge -p '{"spec":{"calicoNetwork":{"linuxDataplane":"BPF", "hostPorts":null}}}'
+  # - name: patch dataplane
+  #   ansible.builtin.shell: |
+  #     kubectl patch installation.operator.tigera.io default --type merge -p '{"spec":{"calicoNetwork":{"linuxDataplane":"BPF", "hostPorts":null}}}'
       

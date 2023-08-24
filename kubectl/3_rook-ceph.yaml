@@ -3,18 +3,24 @@
   environment:
     KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
-  - name: download metallb
+  - name: download rookceph
     ansible.builtin.get_url:
       url: "{{ item.url }}"
       dest: "{{ item.dest }}"
       mode: '0664'
     loop:
-      - url: https://github.com/rook/rook/tree/release-{{ rook }}/deploy/examples/crds.yaml
+      - url: https://raw.githubusercontent.com/rook/rook/release-{{ rook }}/deploy/examples/crds.yaml
         dest: /tmp/crds.yaml
-      - url: https://github.com/rook/rook/tree/release-{{ rook }}/deploy/examples/common.yaml
+      - url: https://raw.githubusercontent.com/rook/rook/release-{{ rook }}/deploy/examples/common.yaml
         dest: /tmp/common.yaml
-      - url: https://github.com/rook/rook/tree/release-{{ rook }}/deploy/examples/operator.yaml
+      - url: https://raw.githubusercontent.com/rook/rook/release-{{ rook }}/deploy/examples/operator.yaml
         dest: /tmp/operator.yaml
+  - name: create rook-ceph namespace
+    kubernetes.core.k8s:
+      name: rook-ceph
+      api_version: v1
+      kind: Namespace
+      state: present
   - name: rook-ceph crd
     kubernetes.core.k8s:
       state: present
@@ -23,14 +29,23 @@
       - /tmp/crds.yaml
       - /tmp/common.yaml
       - /tmp/operator.yaml
+  - name: wait for ...
+    ansible.builtin.wait_for:
+      timeout: 30
   - name: rook-ceph cluster
     kubernetes.core.k8s:
       state: present
-      src: ~/git/homelab/cluster.yaml 
+      src: ~/git/homelab/cluster.yaml
+  - name: wait for ...
+    ansible.builtin.wait_for:
+      timeout: 30
   - name: rook-ceph block storage
     kubernetes.core.k8s:
       state: present
       src: ~/git/homelab/storageclass.yaml 
+  - name: wait for ...
+    ansible.builtin.wait_for:
+      timeout: 30
   - name: set default storage class
     ansible.builtin.shell: |
       kubectl patch storageclass rook-ceph-block -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'

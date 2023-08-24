@@ -4,7 +4,11 @@ metadata:
   name: private-cloud
   namespace: pulsar
 spec:
-  image: streamnative/private-cloud:2.11.1.1
+  image: streamnative/private-cloud:3.0.0.4
+  auditLog:
+    categories:
+      - Management
+      - Describe
 ---
 apiVersion: zookeeper.streamnative.io/v1alpha1
 kind: ZooKeeperCluster
@@ -14,15 +18,37 @@ metadata:
   labels:
     k8s.streamnative.io/coordinator-name: private-cloud
 spec:
-  image: streamnative/private-cloud:2.11.1.1
+  image: streamnative/private-cloud:3.0.0.4
   replicas: 3
   pod:
     resources:
       requests:
         cpu: 50m
         memory: 256Mi
+    jvmOptions:
+      memoryOptions:
+      - >
+        -XX:MaxRAMPercentage=85
+        -XX:+AlwaysPreTouch
+        -Djute.maxbuffer=10485760
+        -Dzookeeper.forceSync=no
+      gcOptions:
+      - >
+        -XX:+UseZGC
+        -XX:-ZUncommit
+        -XX:+UseNUMA
+        -XX:+UseDynamicNumberOfGCThreads
+      gcLoggingOptions:
+      - >
+        -Xlog:gc*:file=/tmp/zk_gc.log::filecount=5,filesize=5m
+      extraOptions:
+      - >
+        -XX:CompileThreshold=2000
+        -XX:+PrintCompilation
     securityContext:
       runAsNonRoot: true
+  persistence:
+    reclaimPolicy: Delete
 ---
 apiVersion: bookkeeper.streamnative.io/v1alpha1
 kind: BookKeeperCluster
@@ -32,7 +58,7 @@ metadata:
   labels:
     k8s.streamnative.io/coordinator-name: private-cloud
 spec:
-  image: streamnative/private-cloud:2.11.1.1
+  image: streamnative/private-cloud:3.0.0.4
   replicas: 3
   zkServers: zookeepers-zk:2181
   pod:
@@ -40,6 +66,26 @@ spec:
       requests:
         cpu: 200m
         memory: 512Mi
+    jvmOptions:
+      memoryOptions:
+      - >
+        -XX:MaxRAMPercentage=45
+        -XX:+AlwaysPreTouch
+        -Djute.maxbuffer=10485760
+        -Dzookeeper.forceSync=no
+      gcOptions:
+      - >
+        -XX:+UseZGC
+        -XX:-ZUncommit
+        -XX:+UseNUMA
+        -XX:+UseDynamicNumberOfGCThreads
+      gcLoggingOptions:
+      - >
+        -Xlog:gc*:file=/tmp/bk_gc.log::filecount=5,filesize=5m
+      extraOptions:
+      - >
+        -XX:CompileThreshold=2000
+        -XX:+PrintCompilation
     securityContext:
       runAsNonRoot: true
   storage:
@@ -71,13 +117,43 @@ metadata:
   labels:
     k8s.streamnative.io/coordinator-name: private-cloud
 spec:
-  image: streamnative/private-cloud:2.11.1.1
+  image: streamnative/private-cloud:3.0.0.4
   replicas: 3
   zkServers: zookeepers-zk:2181
   pod:
     securityContext:
       runAsNonRoot: true
-  #config:
+    jvmOptions:
+      memoryOptions:
+      - >
+        -XX:MaxRAMPercentage=45
+        -XX:+AlwaysPreTouch
+        -Djute.maxbuffer=10485760
+        -Dzookeeper.forceSync=no
+      gcOptions:
+      - >
+        -XX:+UseZGC
+        -XX:-ZUncommit
+        -XX:+UseNUMA
+        -XX:+UseDynamicNumberOfGCThreads
+      gcLoggingOptions:
+      - >
+        -Xlog:gc*:file=/tmp/br_gc.log::filecount=5,filesize=5m
+      extraOptions:
+      - >
+        -XX:CompileThreshold=2000
+        -XX:+PrintCompilation
+  config:
+    pulsarRestMessagingServiceEnabled: true
+    protocolHandlers:
+      mop:
+        enabled: true
+        proxyEnabled: true
+      aop:
+        enabled: true
+        proxyEnabled: true
+      kop:
+        enabled: true        
     #webSocketServiceEnabled: true
 ---
 apiVersion: pulsar.streamnative.io/v1alpha1
@@ -86,7 +162,32 @@ metadata:
   name: proxys
   namespace: pulsar
 spec:
-  image: streamnative/private-cloud:2.11.1.1
+  apiObjects:
+    externalService:
+      exposeSSLPort: true
+      managed: true
+      type: LoadBalancer
+      ports:
+      - name: pulsarssl
+        port: 6651
+        targetPort: 6651
+      - name: https
+        port: 443
+        targetPort: 8443
+      - name: websocket-tls
+        port: 9443
+        targetPort: 9443
+      - name: kop
+        port: 9092
+        targetPort: 9092
+      - name: aop-proxy
+        port: 5673
+        targetPort: 5673
+      - name: mop-proxy
+        port: 5682
+        targetPort: 5682
+    headlessService:
+  image: streamnative/private-cloud:3.0.0.4
   replicas: 2
   brokerAddress: brokers-broker
   pod:
@@ -94,9 +195,28 @@ spec:
       requests:
         cpu: 200m
         memory: 512Mi
+    jvmOptions:
+      memoryOptions:
+      - >
+        -XX:MaxRAMPercentage=45
+        -XX:+AlwaysPreTouch
+        -Djute.maxbuffer=10485760
+        -Dzookeeper.forceSync=no
+      gcOptions:
+      - >
+        -XX:+UseZGC
+        -XX:-ZUncommit
+        -XX:+UseNUMA
+        -XX:+UseDynamicNumberOfGCThreads
+      gcLoggingOptions:
+      - >
+        -Xlog:gc*:file=/tmp/px_gc.log::filecount=5,filesize=5m
+      extraOptions:
+      - >
+        -XX:CompileThreshold=2000
+        -XX:+PrintCompilation
     securityContext:
       runAsNonRoot: true
-  configurationStoreServers: zookeepers-zk:2181
   dnsNames:
     - s1.home.lab
   webSocketServiceEnabled: true
@@ -107,14 +227,18 @@ spec:
   config:
     tls:
       enabled: true
----
-apiVersion: k8s.streamnative.io/v1alpha1
-kind: SNConsole
-metadata:
-  name: sn-private-console
-  namespace: pulsar
-  labels:
-    k8s.streamnative.io/coordinator-name: private-cloud
-spec:
-  image: streamnative/private-cloud-console:v2.0.0
-  webServiceUrl: http://brokers-broker:8080
+# ---
+# apiVersion: k8s.streamnative.io/v1alpha1
+# kind: SNConsole
+# metadata:
+#   name: sn-private-console
+#   namespace: pulsar
+#   labels:
+#     k8s.streamnative.io/coordinator-name: private-cloud
+# spec:
+#   image: streamnative/private-cloud-console:v2.0.0
+#   webServiceUrl: http://brokers-broker:8080
+#   customization:
+#     service:
+#       spec:
+#         type: LoadBalancer

@@ -9,28 +9,13 @@
       api_version: v1
       kind: Namespace
       state: present
-  - name: add banzai vault chart
+  - name: add hashicorp vault chart
     kubernetes.core.helm_repository:
-      name: banzai
-      repo_url: https://kubernetes-charts.banzaicloud.com
-  - name: install vault-operator
+      name: hashicorp
+      repo_url: https://helm.releases.hashicorp.com
+  - name: install vault
     kubernetes.core.helm:
-      name: vault-operator
+      name: hashicorp-vault
       release_namespace: vault
-      chart_ref: banzai/vault-operator
+      chart_ref: hashicorp/vault
       update_repo_cache: true
-  - name: download vault rbac
-    ansible.builtin.get_url:
-      url: https://raw.githubusercontent.com/banzaicloud/bank-vaults/master/operator/deploy/rbac.yaml
-      dest: /tmp/vault-rbac.yaml
-      mode: '0664'
-  - name: apply vault rbac
-    kubernetes.core.k8s:
-      state: present
-      src: /tmp/vault-rbac.yaml
-      namespace: vault
-  - name: apply vault cr
-    kubernetes.core.k8s:
-      state: present
-      namespace: vault
-      src: "{{ vault | default('/Users/ysung/git/homelab/vault-cr.yaml') }}"  
