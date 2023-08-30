@@ -60,3 +60,8 @@
   #     release_namespace: cert-manager
   #     chart_ref: jetstack/cert-manager-trust
   #     update_repo_cache: true
+
+  # cm csi-driver
+  #helm upgrade -i -n cert-manager cert-manager-csi-driver jetstack/cert-manager-csi-driver --wait
+  # cm cm-trust-manager
+  #helm upgrade -i -n cert-manager trust-manager jetstack/trust-manager --wait

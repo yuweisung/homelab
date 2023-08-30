@@ -23,15 +23,15 @@
       release_namespace: harbor
       chart_ref: harbor/harbor
       update_repo_cache: true
-      values:
-        expose:
-          type: loadBalancer
-          tls:
-            enabled: true
-            certSource: secret
-            secret:
-              secretName: harbor-home-lab
-              notarySecretName: harbor-home-lab
-          loadBalancer:
-            IP: "10.0.0.33"
-        externalURL: https://harbor.home.lab
+      # values:
+      #   expose:
+      #     type: loadBalancer
+      #     tls:
+      #       enabled: true
+      #       certSource: secret
+      #       secret:
+      #         secretName: harbor-home-lab
+      #         notarySecretName: harbor-home-lab
+      #     loadBalancer:
+      #       IP: "10.0.0.33"
+      #   externalURL: https://harbor.home.lab

@@ -164,7 +164,9 @@ zookeeper:
   jvm:
     memoryOptions:
     - >
-      -XX:MaxRAMPercentage=85
+      -XX:MaxRAMPercentage=45
+      -XX:InitialRAMPercentage=45
+      -XX:NativeMemoryTracking=summary
     gcOptions:
     - >
       -XX:+UseZGC
@@ -183,6 +185,7 @@ bookkeeper:
     memoryOptions:
     - >
       -XX:MaxRAMPercentage=45
+      -XX:NativeMemoryTracking=summary
     gcOptions:
     - >
       -XX:+UseZGC
@@ -220,6 +223,7 @@ broker:
     memoryOptions:
     - >
       -XX:MaxRAMPercentage=45
+      -XX:NativeMemoryTracking=summary
     gcOptions:
     - >
       -XX:+UseZGC
