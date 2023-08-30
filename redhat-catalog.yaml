@@ -1,0 +1,37 @@
+# kubectl create secret docker-registry redhat --from-file=.dockerconfigjson=/path/to/.docker/config.json
+#kubectl create -f ~/Downloads/11067595-homelab-pull-pull-secret.yaml -n olm
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: redhat-certified-catalog
+  namespace: olm
+spec:
+  displayName: Redhat Certified Operators
+  grpcPodConfig:
+    securityContextConfig: restricted
+  publisher: Redhat
+  sourceType: grpc
+  secrets:
+    - "11067595-homelab-pull-secret"
+    - "16123735-homelab-connect-pull-secret"
+  image: registry.access.redhat.com/redhat/certified-operator-index:v4.12
+  #image: registry.redhat.io/redhat/certified-operator-index:v4.8
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: redhat-community-catalog
+  namespace: olm
+spec:
+  displayName: Redhat Community Operators
+  grpcPodConfig:
+    securityContextConfig: restricted
+  publisher: Redhat
+  sourceType: grpc
+  secrets:
+    - "11067595-homelab-pull-secret"
+    - "16123735-homelab-connect-pull-secret"
+  #image: registry.redhat.io/redhat/community-operator-index:v4.8
+  image: registry.access.redhat.com/redhat/community-operator-index:v4.12
+  #image: registry.connect.redhat.com/redhat/community-operator-index:v4.12
