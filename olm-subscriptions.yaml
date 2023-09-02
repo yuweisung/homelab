@@ -7,8 +7,8 @@ metadata:
 spec:
   channel: alpha
   name: zookeeper-operator
-  #source: operatorhubio-catalog 
-  source: redhat-certified-catalog
+  source: operatorhubio-catalog 
+  #source: redhat-certified-catalog
   sourceNamespace: olm
   #startingCSV: zookeeper-operator.v0.12.0
 ---
@@ -20,8 +20,8 @@ metadata:
 spec:
   channel: alpha
   name: bookkeeper-operator
-  #source: operatorhubio-catalog
-  source: redhat-certified-catalog
+  source: operatorhubio-catalog
+  #source: redhat-certified-catalog
   sourceNamespace: olm
   #startingCSV: bookkeeper-operator.v0.12.0
 ---
@@ -33,22 +33,33 @@ metadata:
 spec:
   channel: alpha
   name: pulsar-operator
-  #source: operatorhubio-catalog
-  source: redhat-certified-catalog
+  source: operatorhubio-catalog
+  #source: redhat-certified-catalog
   sourceNamespace: olm
   #startingCSV: pulsar-operator.v0.12.0
 ---
-# apiVersion: operators.coreos.com/v1alpha1
-# kind: Subscription
-# metadata:
-#   name: function-mesh-operator
-#   namespace: operators
-# spec:
-#   channel: alpha
-#   name: function-mesh
-#   source: operatorhubio-catalog
-#   sourceNamespace: olm
-#   startingCSV: function-mesh-operator.v0.11.7
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: function-mesh-operator
+  namespace: operators
+spec:
+  channel: alpha
+  name: function-mesh
+  source: operatorhubio-catalog
+  sourceNamespace: olm
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: pulsar-resources-operator
+  namespace: operators
+spec: 
+  channel: alpha
+  name: pulsar-resources-operator
+  source: operatorhubio-catalog 
+  sourceNamespace: olm
+# startingCSV: sn-operator:0.11.7
 ---
 # apiVersion: operators.coreos.com/v1alpha1
 # kind: Subscription
