@@ -16,6 +16,7 @@
     - kubectl
   - name: upgrade kubeadm
     shell: kubeadm upgrade apply v{{ k8s_version }} -y
+
   - name: localaction-drain {{ inventory_hostname }}
     become: false
     local_action: ansible.builtin.command kubectl drain {{ inventory_hostname }} --ignore-daemonsets --dsiable-eviction
