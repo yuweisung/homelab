@@ -222,14 +222,15 @@ spec:
       runAsNonRoot: true
   dnsNames:
     - s1.home.lab
-  #webSocketServiceEnabled: true
+  webSocketServiceEnabled: true
+  configurationStoreServers: zookeepers-zk:2181
   issuerRef:
     group: cert-manager.io
     kind: ClusterIssuer
     name: ca-issuer
   config:
-    custom:
-      webSocketServiceEnabled: "true"
+    # custom:
+    #   webSocketServiceEnabled: "true"
     tls:
       enabled: true
 # ---
