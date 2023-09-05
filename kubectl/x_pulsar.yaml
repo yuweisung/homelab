@@ -27,7 +27,7 @@
           license: "{{ lookup('file', '/Users/ysung/git/homelab/sn-license.txt')}}"
   - name: wait for ...
     ansible.builtin.wait_for:
-      timeout: 30
+      timeout: 15
   - name: create pulsar namespace
     kubernetes.core.k8s:
       kind: Namespace

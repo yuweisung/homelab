@@ -39,7 +39,7 @@ spec:
                 targetPort: 6651
                 name: tls-pulsar
                 protocol: TCP
-                name: http
+              - name: http
                 protocol: TCP
               - port: 443
                 targetPort: 8443
