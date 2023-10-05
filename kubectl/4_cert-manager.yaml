@@ -53,7 +53,7 @@
         metadata:
           name: selfsigned-issuer
         spec:
-          selfSigned: {}
+          selfSigned: {} 
   # - name: install trust-manager
   #   kubernetes.core.helm:
   #     name: tm

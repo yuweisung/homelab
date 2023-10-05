@@ -5,11 +5,14 @@ metadata:
   name: private-cloud
   namespace: pulsar
 spec:
-  image: streamnative/private-cloud:3.0.0.4
+  #image: streamnative/private-cloud:3.0.0.4
+  image: streamnative/private-cloud:3.0.1.2
   auditLog:
     categories:
       - Management
       - Describe
+  istio:
+    trustDomain: "home.lab"
   toolSet:
     enabled: true
     replicas: 1
@@ -22,8 +25,12 @@ metadata:
   labels:
     k8s.streamnative.io/coordinator-name: private-cloud
 spec:
-  image: streamnative/private-cloud:3.0.0.4
+  #image: streamnative/private-cloud:3.0.0.4
+  image: streamnative/private-cloud:3.0.1.2
   replicas: 3
+  logConfig:
+    level: INFO
+    format: json
   pod:
     resources:
       requests:
@@ -62,9 +69,13 @@ metadata:
   labels:
     k8s.streamnative.io/coordinator-name: private-cloud
 spec:
-  image: streamnative/private-cloud:3.0.0.4
+  #image: streamnative/private-cloud:3.0.0.4
+  image: streamnative/private-cloud:3.0.1.2
   replicas: 3
   zkServers: zookeepers-zk:2181
+  logConfig:
+    level: INFO
+    format: json
   pod:
     resources:
       requests:
@@ -121,9 +132,18 @@ metadata:
   labels:
     k8s.streamnative.io/coordinator-name: private-cloud
 spec:
-  image: streamnative/private-cloud:3.0.0.4
+  # apiObjects:
+  #   externalService:
+  #     managed: false
+  #image: streamnative/private-cloud:3.0.0.4
+  image: streamnative/private-cloud:3.0.1.2
   replicas: 3
+  logConfig:
+    level: INFO
+    format: json
   zkServers: zookeepers-zk:2181
+  dnsNames:
+    - pulsar.home.lab
   pod:
     securityContext:
       runAsNonRoot: true
@@ -157,82 +177,105 @@ spec:
         enabled: true
         proxyEnabled: true
       kop:
-        enabled: true        
+        enabled: true
+  istio:
+    authRules:
+      fromSource:
+        principals:
+          - names
+    enabled: true
+    gateway:
+      create: true
+      selector: 
+        istio: ingressgateway
+      tls:
+        certSecretName: pulsar-home-lab-tls
+        mode: "simple"
+    
+    #trustDomain: "home.lab"
+    mtls:
+      mode: "PERMISSIVE"
+  # logConfig:
+  #   format: text
+  #   level: DEBUG 
     #webSocketServiceEnabled: true
----
-apiVersion: pulsar.streamnative.io/v1alpha1
-kind: PulsarProxy
-metadata:
-  name: proxys
-  namespace: pulsar
-spec:
-  apiObjects:
-    externalService:
-      exposeSSLPort: true
-      managed: true
-      type: LoadBalancer
-      ports:
-      - name: pulsarssl
-        port: 6651
-        targetPort: 6651
-      - name: https
-        port: 443
-        targetPort: 8443
-      - name: websocket-tls
-        port: 9443
-        targetPort: 9443
-      - name: kop
-        port: 9092
-        targetPort: 9092
-      - name: aop-proxy
-        port: 5673
-        targetPort: 5673
-      - name: mop-proxy
-        port: 5682
-        targetPort: 5682
-  image: streamnative/private-cloud:3.0.0.4
-  replicas: 2
-  brokerAddress: brokers-broker
-  pod:
-    resources:
-      requests:
-        cpu: 200m
-        memory: 512Mi
-    jvmOptions:
-      memoryOptions:
-      - >
-        -XX:MaxRAMPercentage=45
-        -XX:+AlwaysPreTouch
-        -Djute.maxbuffer=10485760
-        -Dzookeeper.forceSync=no
-      gcOptions:
-      - >
-        -XX:+UseZGC
-        -XX:-ZUncommit
-        -XX:+UseNUMA
-        -XX:+UseDynamicNumberOfGCThreads
-      gcLoggingOptions:
-      - >
-        -Xlog:gc*:file=/tmp/px_gc.log::filecount=5,filesize=5m
-      extraOptions:
-      - >
-        -XX:CompileThreshold=2000
-        -XX:+PrintCompilation
-    securityContext:
-      runAsNonRoot: true
-  dnsNames:
-    - s1.home.lab
-  webSocketServiceEnabled: true
-  configurationStoreServers: zookeepers-zk:2181
-  issuerRef:
-    group: cert-manager.io
-    kind: ClusterIssuer
-    name: ca-issuer
-  config:
-    # custom:
-    #   webSocketServiceEnabled: "true"
-    tls:
-      enabled: true
+# ---
+# apiVersion: pulsar.streamnative.io/v1alpha1
+# kind: PulsarProxy
+# metadata:
+#   name: proxys
+#   namespace: pulsar
+# spec:
+#   apiObjects:
+#     externalService:
+#       exposeSSLPort: true
+#       managed: true
+#       type: LoadBalancer
+#       ports:
+#       - name: pulsarssl
+#         port: 6651
+#         targetPort: 6651
+#       - name: https
+#         port: 443
+#         targetPort: 8443
+#       - name: websocket-tls
+#         port: 9443
+#         targetPort: 9443
+#       - name: kop
+#         port: 9092
+#         targetPort: 9092
+#       - name: aop-proxy
+#         port: 5673
+#         targetPort: 5673
+#       - name: mop-proxy
+#         port: 5682
+#         targetPort: 5682
+#   #image: streamnative/private-cloud:3.0.0.4
+#   image: streamnative/private-cloud:3.0.1.2
+#   replicas: 2
+#   brokerAddress: brokers-broker
+#   pod:
+#     resources:
+#       requests:
+#         cpu: 200m
+#         memory: 512Mi
+#     jvmOptions:
+#       memoryOptions:
+#       - >
+#         -XX:MaxRAMPercentage=45
+#         -XX:+AlwaysPreTouch
+#         -Djute.maxbuffer=10485760
+#         -Dzookeeper.forceSync=no
+#       gcOptions:
+#       - >
+#         -XX:+UseZGC
+#         -XX:-ZUncommit
+#         -XX:+UseNUMAls
+#         -XX:+UseDynamicNumberOfGCThreads
+#       gcLoggingOptions:
+#       - >
+#         -Xlog:gc*:file=/tmp/px_gc.log::filecount=5,filesize=5m
+#       extraOptions:
+#       - >
+#         -XX:CompileThreshold=2000
+#         -XX:+PrintCompilation
+#     securityContext:
+#       runAsNonRoot: true
+#   dnsNames:
+#     - s1.home.lab
+#   webSocketServiceEnabled: true
+#   configurationStoreServers: zookeepers-zk:2181
+#   issuerRef:
+#     group: cert-manager.io
+#     kind: ClusterIssuer
+#     name: ca-issuer
+#   config:
+#     # custom:
+#     #   webSocketServiceEnabled: "true"
+#     tls:
+#       enabled: true
+#   # logConfig:
+#   #   level: DEBUG
 # ---
 # apiVersion: k8s.streamnative.io/v1alpha1
 # kind: SNConsole
@@ -243,11 +286,13 @@ spec:
 #     k8s.streamnative.io/coordinator-name: private-cloud
 # spec:
 #   image: streamnative/private-cloud-console:v2.0.0
+#   kopServiceUrl: brokers-broker:9092
 #   webServiceUrl: http://brokers-broker:8080
-#   customization:
-#     service:
-#       spec:
-#         type: LoadBalancer
+  # customization:
+  #   match:
+  #     name: 
+  #   manifest:
+
 
 # ---
 # apiVersion: k8s.streamnative.io/v1alpha1

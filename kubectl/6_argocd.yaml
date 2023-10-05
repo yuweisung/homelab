@@ -3,6 +3,10 @@
   environment:
     KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
+  - name: operator-sdk
+    ansible.builtin.shell: |
+      operator-sdk olm install
+    ignore_errors: true
   - name: download argocd operator
     ansible.builtin.get_url:
       url: https://operatorhub.io/install/argocd-operator.yaml
@@ -12,6 +16,9 @@
     kubernetes.core.k8s:
       state: present
       src: /tmp/argocd-operator.yaml 
+  - name: wait for operator
+    ansible.builtin.wait_for:
+      timeout: 30
   - name: apply argocd cr
     kubernetes.core.k8s:
       state: present

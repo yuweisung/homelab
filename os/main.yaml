@@ -44,8 +44,6 @@
       name: swap
       fstype: swap
       state: absent
-  - name: redhat isv container signing key
-    
   - name: k8s repo
     apt_repository:
       repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
@@ -59,6 +57,7 @@
   - name: k8s dependencies
     apt:
       allow_change_held_packages: true
+      allow_downgrade: true
       pkg:
       - apt-transport-https
       - ca-certificates

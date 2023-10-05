@@ -6,7 +6,11 @@
   - name: install istio-operator
     ansible.builtin.shell: |
       istioctl install --set profile=minimal --skip-confirmation
-  - name: install customized gateway
+  - name: gateway-cert 
     kubernetes.core.k8s:
       state: present
-      src: "{{ istio | default('/Users/ysung/git/homelab/istio.yaml')}}"
+      src: "{{ istio | default('/Users/ysung/git/homelab/ingressgateway-pulsar-cert.yaml')}}"
+  - name: install customized gateway
+    ansible.builtin.shell: |
+      istioctl install -f /Users/ysung/git/homelab/ingress-gateway.yaml -y
+

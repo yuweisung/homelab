@@ -25,7 +25,7 @@ spec:
     - '*.pulsar.home.lab'
   ipAddresses:
     - 10.0.0.35
-  issuer Ref:
+  issuerRef:
     name: ca-issuer
     kind: ClusterIssuer
     group: cert-manager.io

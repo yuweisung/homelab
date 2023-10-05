@@ -30,7 +30,11 @@
       timeout: 15
   - name: create pulsar namespace
     kubernetes.core.k8s:
-      kind: Namespace
-      name: pulsar
-      api_version: v1
+      definition:
+        api_version: v1
+        kind: Namespace
+        metadata:
+          name: pulsar
+          labels:
+            'istio-injection': enabled
       state: present
