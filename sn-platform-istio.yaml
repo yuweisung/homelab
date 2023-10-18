@@ -14,23 +14,23 @@ monitoring:
 
 images:
   zookeeper:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
     customTools:
       backup:
         repository: "streamnative/pulsar-metadata-tool"
-        tag: "3.0.0.4"
+        tag: "3.0.1.2-rootless"
       restore:
         repository: "streamnative/pulsar-metadata-tool"
-        tag: "3.0.0.4"
+        tag: "3.0.1.2-rootless"
   bookie:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
   presto:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
     exporter:
       repository: bitnami/jmx-exporter
@@ -39,36 +39,36 @@ images:
   # NOTE: allow overriding the presto worker image
   # presto_worker:
   #   repository: streamnative/sn-platform
-  #   tag: 3.0.0.4
+  #   tag: 3.0.1.2-rootless
   #   pullPolicy: IfNotPresent
   autorecovery:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
   broker:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
   proxy:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
   pulsar_detector:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
   functions:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
   function_worker:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
   # NOTE: allow overriding the toolset image
   toolset:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
     kafka:
       repository: confluentinc/cp-kafka
@@ -123,8 +123,8 @@ images:
     tag: "v0.9.0"
     pullPolicy: IfNotPresent
   pulsar_metadata:
-    repository: streamnative/sn-platform
-    tag: "3.0.0.4"
+    repository: streamnative/sn-platform-slim
+    tag: "3.0.1.2-rootless"
     pullPolicy: IfNotPresent
   configmapReload:
     repository: jimmidyson/configmap-reload
@@ -153,7 +153,6 @@ zookeeper:
     - >
       -XX:MaxRAMPercentage=45
       -XX:InitialRAMPercentage=45
-      -XX:NativeMemoryTracking=summary
     gcOptions:
     - >
       -XX:+UseZGC
@@ -179,9 +178,6 @@ bookkeeper:
       -Djute.maxbuffer=10485760
       -XX:-ResizePLAB
       -XX:-ZUncommit
-  operator:
-    loadManagerClassName: "org.apache.pulsar.broker.loadbalance.extensions.ExtensibleLoadManagerImpl"
-    loadBalancerLoadSheddingStrategy: "org.apache.pulsar.broker.loadbalance.extensions.scheduler.TransferShedder"
 
 autorecovery:
   resources:
@@ -222,6 +218,10 @@ broker:
     managedLedgerDefaultAckQuorum: "2"
     webSocketServiceEnabled: "true"
 
+  operator:
+    loadManagerClassName: "org.apache.pulsar.broker.loadbalance.extensions.ExtensibleLoadManagerImpl"
+    loadBalancerLoadSheddingStrategy: "org.apache.pulsar.broker.loadbalance.extensions.scheduler.TransferShedder"
+
 toolset:
   useProxy: true
   resources:
@@ -237,11 +237,11 @@ ingress:
     enabled: true
     external_domain: 'pulsar.home.lab'
 
-istio:
-  enabled: true
-  labels: {}
-  mergeMetrics: false
-  gateway:
-    tls:
-      mode: SIMPLE
-      certSecretName: "pulsar-home-lab-tls"
+# istio:
+#   enabled: true
+#   #labels: {}
+#   mergeMetrics: false
+#   gateway:
+#     tls:
+#       mode: SIMPLE
+#       certSecretName: "pulsar-home-lab-tls"

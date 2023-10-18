@@ -7,15 +7,16 @@ metadata:
 spec:
   #image: streamnative/private-cloud:3.0.0.4
   image: streamnative/private-cloud:3.0.1.2
-  auditLog:
-    categories:
-      - Management
-      - Describe
-  istio:
-    trustDomain: "home.lab"
+  # auditLog:
+  #   categories:
+  #     - Management
+  #     - Describe
   toolSet:
     enabled: true
     replicas: 1
+  istio:
+    revision: sn-stable
+    trustDomain: pulsar.home.lab
 ---
 apiVersion: zookeeper.streamnative.io/v1alpha1
 kind: ZooKeeperCluster
@@ -29,8 +30,22 @@ spec:
   image: streamnative/private-cloud:3.0.1.2
   replicas: 3
   logConfig:
-    level: INFO
     format: json
+    level: DEBUG
+    # template: |
+    #   Configuration:
+    #     Appenders:
+    #       Console:
+    #         name: Console
+    #         target: SYSTEM_OUT
+    #         JSONLayout:
+    #           eventEol: true
+    #           compact: true
+    #     Loggers:
+    #       Root:
+    #         level: debug
+    #         AppenderRef:
+    #           - ref: Console
   pod:
     resources:
       requests:
@@ -49,13 +64,13 @@ spec:
         -XX:-ZUncommit
         -XX:+UseNUMA
         -XX:+UseDynamicNumberOfGCThreads
-      gcLoggingOptions:
-      - >
-        -Xlog:gc*:file=/tmp/zk_gc.log::filecount=5,filesize=5m
-      extraOptions:
-      - >
-        -XX:CompileThreshold=2000
-        -XX:+PrintCompilation
+      # gcLoggingOptions:
+      # - >
+      #   -Xlog:gc*:file=/tmp/zk_gc.log::filecount=5,filesize=5m
+      # extraOptions:
+      # - >
+      #   -XX:CompileThreshold=2000
+      #   -XX:+PrintCompilation
     securityContext:
       runAsNonRoot: true
   persistence:
@@ -74,8 +89,8 @@ spec:
   replicas: 3
   zkServers: zookeepers-zk:2181
   logConfig:
-    level: INFO
     format: json
+    level: DEBUG
   pod:
     resources:
       requests:
@@ -139,7 +154,7 @@ spec:
   image: streamnative/private-cloud:3.0.1.2
   replicas: 3
   logConfig:
-    level: INFO
+    level: DEBUG
     format: json
   zkServers: zookeepers-zk:2181
   dnsNames:
@@ -168,6 +183,8 @@ spec:
         -XX:CompileThreshold=2000
         -XX:+PrintCompilation
   config:
+    advertisedDomain: pulsar.home.lab
+    serviceURLGenerationPolicy: FQDN
     pulsarRestMessagingServiceEnabled: true
     protocolHandlers:
       mop:
@@ -179,10 +196,6 @@ spec:
       kop:
         enabled: true
   istio:
-    authRules:
-      fromSource:
-        principals:
-          - names
     enabled: true
     gateway:
       create: true
@@ -190,14 +203,9 @@ spec:
         istio: ingressgateway
       tls:
         certSecretName: pulsar-home-lab-tls
-        mode: "simple"
-    
-    #trustDomain: "home.lab"
-    mtls:
-      mode: "PERMISSIVE"
-  # logConfig:
-  #   format: text
-  #   level: DEBUG 
+        mode: simple
+    trustDomain: "home.lab"
+
     #webSocketServiceEnabled: true
 # ---
 # apiVersion: pulsar.streamnative.io/v1alpha1
