@@ -14,7 +14,7 @@
       src: /tmp/metallb-native.yaml
   - name: wait for ...
     ansible.builtin.wait_for:
-      timeout: 30
+      timeout: 60
   - name: apply pool
     kubernetes.core.k8s:
       state: present

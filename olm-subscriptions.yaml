@@ -9,58 +9,58 @@ spec:
   name: sn-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: zookeeper-operator
-  namespace: operators
-spec:
-  channel: alpha
-  name: zookeeper-operator
-  source: operatorhubio-catalog 
-  sourceNamespace: olm
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: bookkeeper-operator
-  namespace: operators
-spec:
-  channel: alpha
-  name: bookkeeper-operator
-  source: operatorhubio-catalog
-  sourceNamespace: olm
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: pulsar-operator
-  namespace: operators
-spec:
-  channel: alpha
-  name: pulsar-operator
-  source: operatorhubio-catalog
-  sourceNamespace: olm
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: function-mesh-operator
-  namespace: operators
-spec:
-  channel: alpha
-  name: function-mesh
-  source: operatorhubio-catalog
-  sourceNamespace: olm
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: pulsar-resources-operator
-  namespace: operators
-spec: 
-  channel: alpha
-  name: pulsar-resources-operator
-  source: operatorhubio-catalog 
-  sourceNamespace: olm
+# ---
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: Subscription
+# metadata:
+#   name: zookeeper-operator
+#   namespace: operators
+# spec:
+#   channel: alpha
+#   name: zookeeper-operator
+#   source: operatorhubio-catalog 
+#   sourceNamespace: olm
+# ---
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: Subscription
+# metadata:
+#   name: bookkeeper-operator
+#   namespace: operators
+# spec:
+#   channel: alpha
+#   name: bookkeeper-operator
+#   source: operatorhubio-catalog
+#   sourceNamespace: olm
+# ---
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: Subscription
+# metadata:
+#   name: pulsar-operator
+#   namespace: operators
+# spec:
+#   channel: alpha
+#   name: pulsar-operator
+#   source: operatorhubio-catalog
+#   sourceNamespace: olm
+# ---
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: Subscription
+# metadata:
+#   name: function-mesh-operator
+#   namespace: operators
+# spec:
+#   channel: alpha
+#   name: function-mesh
+#   source: operatorhubio-catalog
+#   sourceNamespace: olm
+# ---
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: Subscription
+# metadata:
+#   name: pulsar-resources-operator
+#   namespace: operators
+# spec: 
+#   channel: alpha
+#   name: pulsar-resources-operator
+#   source: operatorhubio-catalog 
+#   sourceNamespace: olm

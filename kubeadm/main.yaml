@@ -4,8 +4,13 @@
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
   tasks:
+  - name: copy kubeadmin config
+    ansible.builtin.copy:
+      src: /Users/ysung/git/homelab/kubeadm.yaml
+      dest: /tmp/kubeadm.yaml
   - name: kubeadm init
-    shell: kubeadm init --cri-socket /run/containerd/containerd.sock  --pod-network-cidr {{ pod_cidr }} --apiserver-advertise-address {{ api_adv_addr }} --apiserver-cert-extra-sans {{ extra_sans}}
+    ansible.builtin.command: |
+      kubeadm init --config /tmp/kubeadm.yaml
   - name: kube admin config
     fetch:
       src: /etc/kubernetes/admin.conf
@@ -18,6 +23,11 @@
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
   tasks:
+  - name: load nbd rbd
+    shell: "modprobe {{ item }}"
+    with_items:
+    - "nbd"
+    - "rbd"
   - name: generate join token
     shell: kubeadm token create --print-join-command
     register: join_command
@@ -26,3 +36,13 @@
       kubeadm_join: "{{ join_command.stdout }}"
   - name: kubeadm join
     shell: "{{ kubeadm_join }}"
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: wait for webhook
+    ansible.builtin.wait_for:
+      timeout: 60
+  - name: patch dataplane
+    ansible.builtin.shell: |
+      for i in `k get csr --no-headers| awk '{print $1}'`; do k certificate approve $i; done
+      kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml

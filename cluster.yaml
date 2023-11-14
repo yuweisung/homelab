@@ -266,9 +266,9 @@ spec:
       - name: "w3.home.lab"
         devices:
         - name: "/dev/disk/by-id/dm-name-ubuntu--vg-rook"
-      # - name: "w4.home.lab"
-      #   devices:
-      #   - name: "/dev/disk/by-id/dm-name-ubuntu--vg-rook"
+      - name: "w4.home.lab"
+        devices:
+        - name: "/dev/disk/by-id/dm-name-ubuntu--vg-rook"
       - name: "nuc9.home.lab"
         devices:
         - name: "/dev/disk/by-id/dm-name-ubuntu--vg-rook"

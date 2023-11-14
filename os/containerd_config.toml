@@ -44,7 +44,7 @@ version = 2
 
   [plugins."io.containerd.grpc.v1.cri"]
     device_ownership_from_security_context = false
-    disable_apparmor = false
+    disable_apparmor = true
     disable_cgroup = false
     disable_hugetlb_controller = true
     disable_proc_mount = false

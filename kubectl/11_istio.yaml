@@ -5,12 +5,13 @@
   tasks:
   - name: install istio-operator
     ansible.builtin.shell: |
-      istioctl install --set profile=minimal --skip-confirmation
-  - name: gateway-cert 
-    kubernetes.core.k8s:
-      state: present
-      src: "{{ istio | default('/Users/ysung/git/homelab/ingressgateway-pulsar-cert.yaml')}}"
+      istioctl install --set profile=ambient -y
+  # - name: gateway-cert 
+  #   kubernetes.core.k8s:
+  #     state: present
+  #     src: "{{ istio | default('/Users/ysung/git/homelab/ingressgateway-pulsar-cert.yaml')}}"
   - name: install customized gateway
     ansible.builtin.shell: |
       istioctl install -f /Users/ysung/git/homelab/ingress-gateway.yaml -y
 
+#kubectl -n istio-system patch ds ztunnel --type='json'  -p='[{"op": "add", "path": "/spec/template/metadata/annotations/cni.projectcalico.org~1allowedSourcePrefixes", "value": "[\"192.168.0.0/16\"]"}]'

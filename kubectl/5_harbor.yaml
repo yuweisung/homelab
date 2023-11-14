@@ -7,6 +7,7 @@
     kubernetes.core.helm_repository:
       name: harbor
       repo_url: https://helm.goharbor.io
+    ignore_errors: true
   - name: harbor namespace
     kubernetes.core.k8s:
       kind: Namespace

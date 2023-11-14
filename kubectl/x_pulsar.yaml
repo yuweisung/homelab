@@ -3,10 +3,10 @@
   environment:
     KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
-  - name: operator-sdk
-    ansible.builtin.shell: |
-      operator-sdk olm install
-    ignore_errors: true
+  # - name: operator-sdk
+  #   ansible.builtin.shell: |
+  #     operator-sdk olm install
+  #   ignore_errors: true
   - name: install operators
     kubernetes.core.k8s:
       state: present

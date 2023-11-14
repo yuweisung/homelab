@@ -1,3 +1,72 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: pulsar
+spec:
+  mtls:
+    mode: STRICT
+---
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: pulsar-admin
+  namespace: pulsar
+spec:
+  selector:
+    matchLabels:
+      app: pulsar
+  jwtRules:
+  - issuer: "https://kc.home.lab"
+    jwksUri: https://kc.home.lab/.well-known/jwks.json
+    audiences:
+    - pulsar.home.lab
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: 
+  namespace: foo
+spec:
+  selector:
+    matchLabels:
+      app: httpbin
+  rules:
+  - from:
+    - source:
+        requestPrincipals: ["*"]
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pulsar-gateway-certificate
+  namespace: istio-system
+spec:
+  secretName: pulsar-home-lab-tls
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  subject:
+    organizations:
+      - homelab
+      - jetstack
+  commonName: pulsar.home.lab
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - pulsar.home.lab
+    - '*.pulsar.home.lab'
+  ipAddresses:
+    - 10.0.0.35
+  issuerRef:
+    name: ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
 ---
 apiVersion: k8s.streamnative.io/v1alpha1
 kind: PulsarCoordinator
@@ -26,6 +95,18 @@ metadata:
   labels:
     k8s.streamnative.io/coordinator-name: private-cloud
 spec:
+  # customization:
+  # - manifest: |
+  #     spec: 
+  #       template:
+  #         spec:
+  #           nodeSelector: 
+  #             topology.kubernetes.io/zone: us-central1-a
+  #           topologySpreadConstraints: null
+  #   match:
+  #     groupVersionKinds:
+  #       - kind: StatefulSet
+  #     name: .*-zk$
   #image: streamnative/private-cloud:3.0.0.4
   image: streamnative/private-cloud:3.0.1.2
   replicas: 3
@@ -204,7 +285,7 @@ spec:
       tls:
         certSecretName: pulsar-home-lab-tls
         mode: simple
-    trustDomain: "home.lab"
+    trustDomain: "pulsar.home.lab"
 
     #webSocketServiceEnabled: true
 # ---

@@ -16,10 +16,11 @@
     - kubectl
   - name: upgrade kubeadm
     shell: kubeadm upgrade apply v{{ k8s_version }} -y
-
+    ignore_errors: true
   - name: localaction-drain {{ inventory_hostname }}
     become: false
     local_action: ansible.builtin.command kubectl drain {{ inventory_hostname }} --ignore-daemonsets
+    ignore_errors: true
   - name: restart kubelet
     systemd:
       name: kubelet
@@ -28,6 +29,7 @@
   - name: localaction-uncordon {{ inventory_hostname }}
     become: false
     local_action: ansible.builtin.command kubectl uncordon {{ inventory_hostname }}
+    ignore_errors: true
 - hosts: workers
   gather_facts: no
   become: yes
@@ -38,9 +40,11 @@
     shell: apt-get install -y --allow-change-held-packages --allow-downgrades kubeadm="{{ k8s_version }}-00" kubectl="{{ k8s_version }}-00" kubelet="{{ k8s_version }}-00"
   - name: upgrade kubeadm
     shell: kubeadm upgrade node
+    ignore_errors: true
   - name: localaction-drain {{ inventory_hostname }}
     become: false
     local_action: ansible.builtin.command kubectl drain {{ inventory_hostname }} --ignore-daemonsets --delete-emptydir-data --disable-eviction
+    ignore_errors: true
   - name: restart kubelet
     systemd:
       name: kubelet
@@ -49,3 +53,4 @@
   - name: localaction-uncordon {{ inventory_hostname }}
     become: false
     local_action: ansible.builtin.command kubectl uncordon {{ inventory_hostname }}
+    ignore_errors: true

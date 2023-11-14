@@ -1,0 +1,9 @@
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
+  tasks:
+  - name: install olm
+    ansible.builtin.shell: |
+      operator-sdk olm install
+    ignore_errors: true

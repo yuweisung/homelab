@@ -11,7 +11,9 @@ spec:
       natOutgoing: Enabled
       nodeSelector: all()
     nodeAddressAutodetectionV4:
-      kubernetes
+      kubernetes: NodeInternalIP
+    linuxDataplane: BPF
+    hostPorts: null
 ---
 apiVersion: operator.tigera.io/v1
 kind: APIServer

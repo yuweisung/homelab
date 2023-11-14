@@ -49,6 +49,17 @@ data:
           ]
         }
       ],
+      "groups": [
+        {
+           "id": "mygroup",
+           "name": "mygroup",
+           "path": "/mygroup"
+           "attributes": {},
+           "realmRoles": [],
+           "clientRoles": {},
+           "subGroups": [] 
+        }
+      ],
       "roles": {
         "realm": [
           {
@@ -66,11 +77,11 @@ data:
       ],
       "clients": [
         {
-          "clientId": "app",
+          "clientId": "snpulsar",
           "enabled": true,
           "publicClient": true,
           "redirectUris": [
-            "*"
+            "https://pulsar.home.lab"
           ],
           "webOrigins": [
             "*"
@@ -134,10 +145,10 @@ spec:
         image: quay.io/keycloak/keycloak:latest
         resources:
           limits:
-            memory: "512Mi"
-            cpu: 500m
+            memory: "768Mi"
+            cpu: 800m
           requests:
-            memory: "256Mi"
+            memory: "512Mi"
             cpu: 500m
         args: ["start", "--import-realm", "--cache-stack=kubernetes"]
         volumeMounts:

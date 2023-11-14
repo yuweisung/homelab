@@ -45,15 +45,15 @@
         spec:
           ca:
             secretName: ca-secret
-  - name: create self-signed ca
-    kubernetes.core.k8s:
-      definition:
-        apiVersion: cert-manager.io/v1
-        kind: ClusterIssuer
-        metadata:
-          name: selfsigned-issuer
-        spec:
-          selfSigned: {} 
+  # - name: create self-signed ca
+  #   kubernetes.core.k8s:
+  #     definition:
+  #       apiVersion: cert-manager.io/v1
+  #       kind: ClusterIssuer
+  #       metadata:
+  #         name: selfsigned-issuer
+  #       spec:
+  #         selfSigned: {} 
   # - name: install trust-manager
   #   kubernetes.core.helm:
   #     name: tm

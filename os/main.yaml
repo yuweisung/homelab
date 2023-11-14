@@ -28,6 +28,7 @@
     with_items:
       - overlay
       - br_netfilter
+      - rbd
   - name: sysctl
     sysctl:
       name: "{{ item }}"
@@ -67,6 +68,7 @@
       - kubeadm={{ k8s_version }}-00
       - containerd
       - open-iscsi
+      - ceph-common
   - name: hold k8s
     dpkg_selections:
       name: "{{ item }}"

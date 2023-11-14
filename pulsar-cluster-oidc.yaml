@@ -1,0 +1,217 @@
+---
+apiVersion: k8s.streamnative.io/v1alpha1
+kind: PulsarCoordinator
+metadata:
+  name: private-cloud
+  namespace: pulsar
+spec:
+  #image: streamnative/private-cloud:3.0.0.4
+  image: streamnative/private-cloud:3.0.1.2
+  # auditLog:
+  #   categories:
+  #     - Management
+  #     - Describe
+  toolSet:
+    enabled: true
+    replicas: 1
+
+---
+apiVersion: zookeeper.streamnative.io/v1alpha1
+kind: ZooKeeperCluster
+metadata:
+  name: zookeepers
+  namespace: pulsar
+  labels:
+    k8s.streamnative.io/coordinator-name: private-cloud
+spec:
+  #image: streamnative/private-cloud:3.0.0.4
+  image: streamnative/private-cloud:3.0.1.2
+  replicas: 3
+  logConfig:
+    format: json
+    level: DEBUG
+    # template: |
+    #   Configuration:
+    #     Appenders:
+    #       Console:
+    #         name: Console
+    #         target: SYSTEM_OUT
+    #         JSONLayout:
+    #           eventEol: true
+    #           compact: true
+    #     Loggers:
+    #       Root:
+    #         level: debug
+    #         AppenderRef:
+    #           - ref: Console
+  pod:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+    jvmOptions:
+      memoryOptions:
+      - >
+        -XX:MaxRAMPercentage=85
+        -XX:+AlwaysPreTouch
+        -Djute.maxbuffer=10485760
+        -Dzookeeper.forceSync=no
+      gcOptions:
+      - >
+        -XX:+UseZGC
+        -XX:-ZUncommit
+        -XX:+UseNUMA
+        -XX:+UseDynamicNumberOfGCThreads
+      # gcLoggingOptions:
+      # - >
+      #   -Xlog:gc*:file=/tmp/zk_gc.log::filecount=5,filesize=5m
+      # extraOptions:
+      # - >
+      #   -XX:CompileThreshold=2000
+      #   -XX:+PrintCompilation
+    securityContext:
+      runAsNonRoot: true
+  persistence:
+    reclaimPolicy: Delete
+---
+apiVersion: bookkeeper.streamnative.io/v1alpha1
+kind: BookKeeperCluster
+metadata:
+  name: bookies
+  namespace: pulsar
+  labels:
+    k8s.streamnative.io/coordinator-name: private-cloud
+spec:
+  #image: streamnative/private-cloud:3.0.0.4
+  image: streamnative/private-cloud:3.0.1.2
+  replicas: 3
+  zkServers: zookeepers-zk:2181
+  logConfig:
+    format: json
+    level: DEBUG
+  pod:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+    jvmOptions:
+      memoryOptions:
+      - >
+        -XX:MaxRAMPercentage=45
+        -XX:+AlwaysPreTouch
+        -Djute.maxbuffer=10485760
+        -Dzookeeper.forceSync=no
+      gcOptions:
+      - >
+        -XX:+UseZGC
+        -XX:-ZUncommit
+        -XX:+UseNUMA
+        -XX:+UseDynamicNumberOfGCThreads
+      gcLoggingOptions:
+      - >
+        -Xlog:gc*:file=/tmp/bk_gc.log::filecount=5,filesize=5m
+      extraOptions:
+      - >
+        -XX:CompileThreshold=2000
+        -XX:+PrintCompilation
+    securityContext:
+      runAsNonRoot: true
+  storage:
+    journal:
+      numDirsPerVolume: 1
+      numVolumes: 1
+      volumeClaimTemplate:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 8Gi
+    ledger:
+      numDirsPerVolume: 1
+      numVolumes: 1
+      volumeClaimTemplate:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 16Gi
+    reclaimPolicy: Delete
+---
+apiVersion: pulsar.streamnative.io/v1alpha1
+kind: PulsarBroker
+metadata:
+  name: brokers
+  namespace: pulsar
+  labels:
+    k8s.streamnative.io/coordinator-name: private-cloud
+spec:
+  # apiObjects:
+  #   externalService:
+  #     managed: false
+  #image: streamnative/private-cloud:3.0.0.4
+  image: streamnative/private-cloud:3.0.1.2
+  replicas: 3
+  logConfig:
+    level: DEBUG
+    format: json
+  zkServers: zookeepers-zk:2181
+  dnsNames:
+    - pulsar.home.lab
+  pod:
+    securityContext:
+      runAsNonRoot: true
+    jvmOptions:
+      memoryOptions:
+      - >
+        -XX:MaxRAMPercentage=45
+        -XX:+AlwaysPreTouch
+        -Djute.maxbuffer=10485760
+        -Dzookeeper.forceSync=no
+      gcOptions:
+      - >
+        -XX:+UseZGC
+        -XX:-ZUncommit
+        -XX:+UseNUMA
+        -XX:+UseDynamicNumberOfGCThreads
+      gcLoggingOptions:
+      - >
+        -Xlog:gc*:file=/tmp/br_gc.log::filecount=5,filesize=5m
+      extraOptions:
+      - >
+        -XX:CompileThreshold=2000
+        -XX:+PrintCompilation
+  config:
+    authentication:
+    authorization:
+    advertisedDomain: pulsar.home.lab
+    serviceURLGenerationPolicy: FQDN
+    pulsarRestMessagingServiceEnabled: true
+    protocolHandlers:
+      mop:
+        enabled: true
+        proxyEnabled: true
+      aop:
+        enabled: true
+        proxyEnabled: true
+      kop:
+        enabled: true
+
+
+authenticationEnabled=true
+authenticationProviders=org.apache.pulsar.broker.authentication.oidc.AuthenticationProviderOpenID
+PULSAR_PREFIX_openIDAllowedTokenIssuers=https://kc.home.lab:8443
+PULSAR_PREFIX_openIDAllowedAudiences=audience-1
+PULSAR_PREFIX_openIDTokenIssuerTrustCertsFilePath=
+PULSAR_PREFIX_openIDRoleClaim=sub
+PULSAR_PREFIX_openIDAcceptedTimeLeewaySeconds=0
+PULSAR_PREFIX_openIDCacheSize=5
+PULSAR_PREFIX_openIDCacheRefreshAfterWriteSeconds=64800
+PULSAR_PREFIX_openIDCacheExpirationSeconds=86400
+PULSAR_PREFIX_openIDHttpConnectionTimeoutMillis=10000
+PULSAR_PREFIX_openIDHttpReadTimeoutMillis=10000
+PULSAR_PREFIX_openIDKeyIdCacheMissRefreshSeconds=300
+PULSAR_PREFIX_openIDRequireIssuersUseHttps=true
+PULSAR_PREFIX_openIDFallbackDiscoveryMode=DISABLED
+
+authorizationEnabled=true
+superUserRoles=admin
