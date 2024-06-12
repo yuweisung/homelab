@@ -3,6 +3,12 @@
   environment:
     KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
+  - name: create tigera-operator namespace
+    kubernetes.core.k8s:
+      name: tigera-operator
+      api_version: v1
+      kind: Namespace
+      state: present
   - name: download metallb
     ansible.builtin.get_url:
       url: https://raw.githubusercontent.com/metallb/metallb/{{ metallb_version }}/config/manifests/metallb-native.yaml

@@ -45,9 +45,12 @@
       name: swap
       fstype: swap
       state: absent
+  - name: k8s apt-key
+    shell: |
+      curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{k8s_repo_version}}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg --yes
   - name: k8s repo
     apt_repository:
-      repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{k8s_repo_version}}/deb/ /"
       state: present
       filename: kubernetes.list
   - name: apt update
@@ -63,9 +66,9 @@
       - apt-transport-https
       - ca-certificates
       - parted
-      - kubelet={{ k8s_version }}-00
-      - kubectl={{ k8s_version }}-00
-      - kubeadm={{ k8s_version }}-00
+      - kubelet
+      - kubectl
+      - kubeadm
       - containerd
       - open-iscsi
       - ceph-common
@@ -83,3 +86,6 @@
       state: started
       enabled: true
       daemon_reload: true
+
+      
+

@@ -1,0 +1,48 @@
+---
+apiVersion: k8s.streamnative.io/v1alpha1
+kind: ApiKeys
+metadata:
+  labels:
+    cloud.streamnative.io/app: pulsar
+    cloud.streamnative.io/cluster: apikeys
+    cloud.streamnative.io/component: apikeys
+    cloud.streamnative.io/location: us-central1
+    cloud.streamnative.io/poolmember-name: gcp-shared-gcp-usce1-whale-snc
+    cloud.streamnative.io/poolmember-namespace: streamnative
+    cloud.streamnative.io/pulsar-cluster: apikeys
+    cloud.streamnative.io/pulsar-instance: apikeys
+    cloud.streamnative.io/role: apikeys
+    istio.io/rev: sn-stable
+    k8s.streamnative.io/coordinator-name: apikeys
+  name: apikeys
+  namespace: guangning
+spec:
+  brokerServiceUrl: 'pulsar://apikeys-broker.guangning.svc.cluster.local:6650'
+  config:
+    authenticator:
+      acceptedAudience: 'urn:sn:pulsar:guangning:apikeys'
+      enabled: true
+      issuers:
+        - 'https://auth.streamnative.cloud/'
+        - 'https://auth.sncloud-stg.dev/'
+        - 'https://auth.test.cloud.gcp.streamnative.dev/'
+    backend:
+      pulsarTopic: api_keys_api.example
+    server:
+      audience: 'urn:sn:pulsar:guangning:apikeys'
+      claimsToCopy:
+        - sub
+        - permissions
+        - aud
+        - scope
+        - 'https://streamnative.io/username'
+      currentKid: 7007ddf9-beac-4e74-8e32-f03453fea3e0
+  hostname: apikeys-49c084ec-dfaa-4aed-a879-68ae5c2d1b30.usce1-whale.test.g.sn2.dev
+  image: 'gcr.io/affable-ray-226821/streamnative/api-keys:sha-29e7517'
+  istio:
+    enabled: true
+    gateway:
+      gateways:
+        - apikeys-gateway
+  replicas: 1
+---

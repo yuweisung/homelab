@@ -1,0 +1,18 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: k8s apt-key
+    shell: |
+      curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{k8s_repo_version}}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg --yes
+  - name: k8s repo
+    apt_repository:
+      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{k8s_repo_version}}/deb/ /"
+      state: present
+      filename: kubernetes.list
+  - name: apt update
+    apt:
+      force_apt_get: 'yes'
+      update_cache: 'yes'
+      upgrade: 'yes'

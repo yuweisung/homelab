@@ -1,0 +1,19 @@
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: home.lab
+spec:
+  sources:
+    - useDefaultCAs: true
+    - secret:
+        name: "ca-secret"
+        key: "tls.crt"
+  target:
+    configMap:
+      key: "root-certs.pem"
+    additionalFormats:
+      jks:
+        key: "bundle.jks"
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: keycloak

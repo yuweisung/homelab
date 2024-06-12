@@ -35,6 +35,6 @@
         kind: Namespace
         metadata:
           name: pulsar
-          labels:
-            'istio-injection': enabled
+          # labels:
+          #   'istio-injection': enabled
       state: present

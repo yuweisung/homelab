@@ -8,7 +8,12 @@
       name: keycloak
       api_version: v1
       kind: Namespace
+      definition:
+        metadata:
+          labels:
+            cert-manager.io/trust-manager: "trusted"
       state: present
+
   - name: add bitnami chart
     kubernetes.core.helm_repository:
       name: bitnami

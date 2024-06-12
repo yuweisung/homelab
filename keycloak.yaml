@@ -17,93 +17,13 @@ spec:
     - client auth
   dnsNames:
     - "kc.home.lab"
+    - "keycloak"
   ipAddresses:
-    - 10.0.0.32
+    - 10.10.0.32
   issuerRef:
     name: ca-issuer
     kind: ClusterIssuer
     group: cert-manager.io
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: sn-lab-realm
-  namespace: keycloak
-data:
-  realm.json: |
-    {
-      "realm": "sn-lab",
-      "enabled": true,
-      "users": [
-        {
-          "username": "pulsaradmin",
-          "enabled": true,
-          "credentials": [
-            {
-              "type": "password",
-              "value": "changeme"
-            }
-          ],
-          "realmRoles": [
-            "admin"
-          ]
-        }
-      ],
-      "groups": [
-        {
-           "id": "mygroup",
-           "name": "mygroup",
-           "path": "/mygroup"
-           "attributes": {},
-           "realmRoles": [],
-           "clientRoles": {},
-           "subGroups": [] 
-        }
-      ],
-      "roles": {
-        "realm": [
-          {
-            "name": "user",
-            "description": "User privileges"
-          },
-          {
-            "name": "admin",
-            "description": "Administrator privileges"
-          }
-        ]
-      },
-      "defaultRoles": [
-        "user"
-      ],
-      "clients": [
-        {
-          "clientId": "snpulsar",
-          "enabled": true,
-          "publicClient": true,
-          "redirectUris": [
-            "https://pulsar.home.lab"
-          ],
-          "webOrigins": [
-            "*"
-          ]
-        },
-        {
-          "clientId": "demo-mutual-tls",
-          "enabled": true,
-          "publicClient": false,
-          "clientAuthenticatorType": "client-x509",
-          "redirectUris": [
-            "*"
-          ],
-          "webOrigins": [
-            "*"
-          ],
-          "attributes": {
-            "x509.subjectdn": "CN=demo-mutual-tls-keycloak.*"
-          }
-        }
-      ]
-    }
 ---
 apiVersion: v1
 kind: Service
@@ -111,13 +31,13 @@ metadata:
   name: keycloak
   namespace: keycloak
   annotations:
-    metallb.universe.tf/loadBalancerIPs: 10.0.0.32
+    metallb.universe.tf/loadBalancerIPs: 10.10.0.32
   labels:
     app: keycloak
 spec:
   ports:
   - name: https
-    port: 8443
+    port: 443
     targetPort: 8443
   selector:
     app: keycloak
@@ -131,7 +51,7 @@ metadata:
   labels:
     app: keycloak
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: keycloak
@@ -142,7 +62,7 @@ spec:
     spec:
       containers:
       - name: keycloak
-        image: quay.io/keycloak/keycloak:latest
+        image: quay.io/keycloak/keycloak:24.0.4
         resources:
           limits:
             memory: "768Mi"
@@ -150,15 +70,27 @@ spec:
           requests:
             memory: "512Mi"
             cpu: 500m
-        args: ["start", "--import-realm", "--cache-stack=kubernetes"]
+        args: ["start"]
         volumeMounts:
         - name: certs
           mountPath: "/etc/certs"
           readOnly: true
-        - name: realm-config
-          mountPath: /opt/keycloak/data/import
+        - name: truststore
+          mountPath: "/etc/truststore"
           readOnly: true
         env:
+        - name: KC_CACHE_STACK
+          value: "kubernetes"
+        - name: KC_HOSTNAME_STRICT_HTTPS
+          value: "false"
+        - name: KC_HTTPS_PROTOCOLS
+          value: TLSv1.2
+        - name: KC_HOSTNAME_STRICET_BACKCHANNEL
+          value: "false"
+        - name: KC_PROXY
+          value: "edge"
+        - name: KC_LOG_LEVEL
+          value: DEBUG
         - name: KEYCLOAK_ADMIN
           value: "admin"
         - name: KEYCLOAK_ADMIN_PASSWORD
@@ -167,10 +99,18 @@ spec:
           value: "/etc/certs/tls.crt"
         - name: KC_HTTPS_CERTIFICATE_KEY_FILE
           value: "/etc/certs/tls.key"
+        - name: KC_HTTPS_TRUST_STORE_FILE
+          value: "/etc/truststore/bundle.jks"
+        - name: KC_HTTPS_TRUST_STORE_PASSWORD
+          value: "changeit"
         - name: KC_HEALTH_ENABLED
           value: "true"
+        - name: KC_METRICS_ENABLED
+          value: "false"
         - name: KC_HOSTNAME
           value: "kc.home.lab"
+        - name: KC_HOSTNAME_DEBUG
+          value: "true"
         - name: KC_DB
           value: "postgres"
         - name: KC_DB_URL
@@ -182,24 +122,36 @@ spec:
             secretKeyRef:
               name: keycloak-postgresql
               key: postgres-password
+        - name: KC_TRANSACTION_XA_ENABLED
+          value: "true"
+        - name: QUARKUS_TRANSACTION_MANAGER_ENABLE_RECOVERY
+          value: "true"
+        - name: CACHE_OWNERS_COUNT
+          value: "2"
+        - name: CACHE_OWNERS_AUTH_SESSIONS_COUNT
+          value: "2"
         - name: jgroups.dns.query
-          value: keycloak
+          value: "headless-keycloak.keycloak.svc.cluster.local"
+        - name: KC_FILE
+          value: /opt/keycloak/data/import
         ports:
         - name: jgroups
           containerPort: 7600
         - name: https
           containerPort: 8443
         readinessProbe:
-          initialDelaySeconds: 60
+          initialDelaySeconds: 120
           periodSeconds: 1
           httpGet:
             scheme: HTTPS
-            path: /realms/master
+            path: /health/ready
             port: 8443
       volumes:
       - name: certs
         secret:
           secretName: kc-home-lab-tls
-      - name: realm-config
+      - name: truststore
         configMap:
-          name: sn-lab-realm
+          name: "home.lab"
+
+          

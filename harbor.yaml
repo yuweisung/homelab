@@ -22,7 +22,7 @@ spec:
   dnsNames:
     - harbor.home.lab
   ipAddresses:
-    - 10.0.0.33
+    - 10.10.0.33
   issuerRef:
     name: ca-issuer
     kind: ClusterIssuer

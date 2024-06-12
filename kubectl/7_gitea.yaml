@@ -1,0 +1,25 @@
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
+  tasks:
+  - name: add gitea helm repo
+    kubernetes.core.helm_repository:
+      name: gitea
+      repo_url: https://dl.gitea.com/charts/
+    ignore_errors: true
+  - name: create gitea namespace
+    kubernetes.core.k8s:
+      name: gitea
+      api_version: v1
+      kind: Namespace
+      state: present
+  - name: install gitea
+    kubernetes.core.helm:
+      name: gitea
+      release_namespace: gitea
+      chart_ref: gitea/gitea
+      update_repo_cache: true
+      force: true
+      values_files:
+        - /Users/ysung/git/homelab/gitea.yaml

@@ -4,20 +4,35 @@ nodeRegistration:
   criSocket: "unix:///var/run/containerd/containerd.sock"
 skipPhases:
   - addon/kube-proxy
+localAPIEndpoint:
+  advertiseAddress: 10.10.0.10
+  bindPort: 6443
+    
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
+certificatesDir: "/etc/kubernetes/pki"
 networking:
   podSubnet: "192.168.0.0/16"
   dnsDomain: "cluster.local"
   serviceSubnet: "10.96.0.0/16"
+controllerManager:
+  extraArgs:
+    cluster-signing-cert-file: /etc/kubernetes/pki/ca.crt
+    cluster-signing-key-file: /etc/kubernetes/pki/ca.key
 apiServer:
   extraArgs:
     authorization-mode: "Node,RBAC"
   certSANs:
   - "10.0.0.10"
+  - "10.10.0.10"
   - "m1.home.lab"
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 serverTLSBootstrap: true
+tlsCipherSuites: [TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256]
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: JoinConfiguration
+caCertPath: "/etc/kubernetes/pki/ca.crt"

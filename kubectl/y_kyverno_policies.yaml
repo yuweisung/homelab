@@ -1,0 +1,23 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: secrets-not-from-env-vars
+spec:
+  background: true
+  validationFailureAction: Audit
+  rules:
+  - name: secrets-not-from-env-vars
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    validate:
+      message: "Secrets must be mounted as volumes, not as environment variables."
+      pattern:
+        spec:
+          containers:
+          - name: "*"
+            =(env):
+            - =(valueFrom):
+                X(secretKeyRef): "null"

@@ -1,33 +1,33 @@
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: kibana-certificate
-  namespace: elastic
-spec:
-  secretName: elastic-home-lab
-  duration: 2160h # 90d
-  renewBefore: 360h # 15d
-  subject:
-    organizations:
-      - homelab
-      - jetstack
-  commonName: elastic.home.lab
-  isCA: false
-  privateKey:
-    algorithm: RSA
-    encoding: PKCS1
-    size: 2048
-  usages:
-    - server auth
-    - client auth
-  dnsNames:
-    - elastic.home.lab
-  ipAddresses:
-    - 10.0.0.34
-  issuerRef:
-    name: ca-issuer
-    kind: ClusterIssuer
-    group: cert-manager.io
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   name: kibana-certificate
+#   namespace: elastic
+# spec:
+#   secretName: elastic-home-lab
+#   duration: 2160h # 90d
+#   renewBefore: 360h # 15d
+#   subject:
+#     organizations:
+#       - homelab
+#       - jetstack
+#   commonName: elastic.home.lab
+#   isCA: false
+#   privateKey:
+#     algorithm: RSA
+#     encoding: PKCS1
+#     size: 2048
+#   usages:
+#     - server auth
+#     - client auth
+#   dnsNames:
+#     - elastic.home.lab
+#   ipAddresses:
+#     - 10.10.0.34
+#   issuerRef:
+#     name: ca-issuer
+#     kind: ClusterIssuer
+#     group: cert-manager.io
 ---
 apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
@@ -35,12 +35,35 @@ metadata:
   name: my-ec
   namespace: elastic
 spec:
-  version: 8.6.2
+  version: 8.11.0
+  transport:
+    tls:
+      certificate:
+        secretName: elastic-home-lab
   nodeSets:
   - name: default
-    count: 1
+    count: 3
     config:
       node.store.allow_mmap: false
+      xpack.security.transport.ssl.key: /usr/share/elasticsearch/config/cert-manager-certs/tls.key
+      xpack.security.transport.ssl.certificate: /usr/share/elasticsearch/config/cert-manager-certs/tls.crt
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          volumeMounts:
+          - name: transport-certs
+            mountPath: /usr/share/elasticsearch/config/cert-manager-certs
+        volumes:
+        - name: transport-certs
+          csi:
+            driver: csi-cert-manager.io
+            readOnly: true
+            volumeAttributes:
+              csi.cert-manager.io/issuer-name: ca-issuer
+              csi.cert-manager.io/issuer-kind: ClusterIssuer
+              csi.cert-manager.io/dns-names: "${POD_NAME}.${POD_NAMESPACE}.svc.cluster.local"
+              csi.cert-manager.io/common-name: "elastic.home.lab"        
 ---
 apiVersion: kibana.k8s.elastic.co/v1
 kind: Kibana
@@ -48,7 +71,7 @@ metadata:
   name: my-kibana
   namespace: elastic
 spec:
-  version: 8.6.2
+  version: 8.11.0
   count: 1
   elasticsearchRef:
     name: my-ec
@@ -60,5 +83,5 @@ spec:
     service:
       spec:
         type: LoadBalancer
-        loadBalancerIP: 10.0.0.34
+        loadBalancerIP: 10.10.0.34
         externalName: elastic.home.lab

@@ -6,35 +6,43 @@
   - name: add jetstack
     kubernetes.core.helm_repository:
       name: jetstack
-      repo_url: https://kcharts.jetstack.io
+      repo_url: https://charts.jetstack.io
     ignore_errors: true
-  - name: create cert-manager namespace
-    kubernetes.core.k8s:
-      name: cert-manager
-      api_version: v1
-      kind: Namespace
-      state: present
+  - name: install cert-manager
+    kubernetes.core.helm:
+      name: cm
+      release_namespace: cert-manager
+      chart_ref: jetstack/cert-manager
+      update_repo_cache: true
+      create_namespace: true
+      force: true
+      set_values:
+        - value: installCRDs=true
+  - name: wait for webhook
+    ansible.builtin.wait_for:
+      timeout: 30
+  - name: install cert-manager-csi
+    kubernetes.core.helm:
+      name: cm-csi
+      release_namespace: cert-manager
+      chart_ref: jetstack/cert-manager-csi-driver
+      update_repo_cache: true
+  - name: install trust-manager
+    kubernetes.core.helm:
+      name: trust-manager
+      release_namespace: cert-manager
+      chart_ref: jetstack/trust-manager
+      update_repo_cache: true
+      set_values:
+        - value: secretTargets.enabled=true
+        - value: secretTargets.authorizedSecretsAll=true
+  - name: wait for trust-manager
+    ansible.builtin.wait_for:
+      timeout: 30
   - name: create ca secret
     ansible.builtin.shell: |
       kubectl create secret tls ca-secret -n cert-manager --key={{ root_key }} --cert={{ root_crt }}
     ignore_errors: true
-  - name: install cert-manager
-    ansible.builtin.shell: |
-      kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/{{ cm_version }}/cert-manager.yaml
-    # kubernetes.core.helm:
-    #   name: cm
-    #   release_namespace: cert-manager
-    #   chart_ref: jetstack/cert-manager
-    #   update_repo_cache: true
-  # - name: install cert-manager-csi
-  #   kubernetes.core.helm:
-  #     name: cm-csi
-  #     release_namespace: cert-manager
-  #     chart_ref: jetstack/cert-manager-csi-driver
-  #     update_repo_cache: true
-  - name: wait for webhook
-    ansible.builtin.wait_for:
-      timeout: 30
   - name: create cluster issuer
     kubernetes.core.k8s:
       definition:    
@@ -45,23 +53,31 @@
         spec:
           ca:
             secretName: ca-secret
-  # - name: create self-signed ca
-  #   kubernetes.core.k8s:
-  #     definition:
-  #       apiVersion: cert-manager.io/v1
-  #       kind: ClusterIssuer
-  #       metadata:
-  #         name: selfsigned-issuer
-  #       spec:
-  #         selfSigned: {} 
-  # - name: install trust-manager
-  #   kubernetes.core.helm:
-  #     name: tm
-  #     release_namespace: cert-manager
-  #     chart_ref: jetstack/cert-manager-trust
-  #     update_repo_cache: true
+  - name: create trust bundle
+    tags:
+      - bundle
+    kubernetes.core.k8s:
+      definition: 
+        apiVersion: trust.cert-manager.io/v1alpha1
+        kind: Bundle
+        metadata:
+          name: home.lab
+        spec:
+          sources:
+          - useDefaultCAs: true
+          - secret:
+              name: "ca-secret"
+              key: "tls.crt"
+          target:
+            configMap:
+              key: "root-certs.pem"
+            additionalFormats:
+              jks:
+                key: "bundle.jks"
+            secret:
+              key: "ca.crt"              
+            # namespaceSelector:
+            #   matchLabels:
+            #     cert-manager.io/trust-manager: "trusted"
 
-  # cm csi-driver
-  #helm upgrade -i -n cert-manager cert-manager-csi-driver jetstack/cert-manager-csi-driver --wait
-  # cm cm-trust-manager
-  #helm upgrade -i -n cert-manager trust-manager jetstack/trust-manager --wait
+  

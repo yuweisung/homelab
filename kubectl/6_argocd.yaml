@@ -23,3 +23,7 @@
     kubernetes.core.k8s:
       state: present
       src: "{{ argocd | default('/Users/ysung/git/homelab/argocd.yaml')}}"
+  - name: argo rollout
+    ansible.builtin.shell: |
+      kubectl create namespace argo-rollouts
+      kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml

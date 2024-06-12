@@ -4,6 +4,14 @@
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
   tasks:
+  - name: add ca pair
+    ansible.builtin.copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      mode: "{{ item.mode }}"
+    loop:
+      - { src: '/Users/ysung/git/homelab/root.key', dest: '/etc/kubernetes/pki/ca.key', mode: '0600' }
+      - { src: '/Users/ysung/git/homelab/root.crt', dest: '/etc/kubernetes/pki/ca.crt', mode: '0644' }
   - name: copy kubeadmin config
     ansible.builtin.copy:
       src: /Users/ysung/git/homelab/kubeadm.yaml
@@ -39,10 +47,39 @@
 - hosts: localhost
   gather_facts: no
   tasks:
+  - name: patch dataplane
+    ansible.builtin.shell: | 
+      kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
   - name: wait for webhook
     ansible.builtin.wait_for:
-      timeout: 60
+      timeout: 30
   - name: patch dataplane
-    ansible.builtin.shell: |
+    ansible.builtin.shell: |    
       for i in `k get csr --no-headers| awk '{print $1}'`; do k certificate approve $i; done
-      kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+- hosts: all
+  gather_facts: yes
+  become: yes
+  tags: kube-bench
+  tasks:
+  - name: 4.1-1
+    ansible.builtin.file:
+      path: "{{ item }}"
+      owner: root
+      group: root
+      mode: '600'
+    with_items:
+      - "/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+      - "/var/lib/kubelet/config.yaml"
+  - name: 4.1-2
+    ansible.builtin.file:
+      path: "{{ item }}"
+      owner: root
+      group: root
+      mode: '644'
+    with_items:
+      - "/etc/kubernetes/pki/ca.crt"
+  - name: restart
+    ansible.builtin.systemd_service:
+      name: kubelet
+      state: restarted
+      daemon_reload: true

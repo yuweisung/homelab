@@ -22,20 +22,6 @@ spec:
     audiences:
     - pulsar.home.lab
 ---
-apiVersion: security.istio.io/v1
-kind: AuthorizationPolicy
-metadata:
-  name: 
-  namespace: foo
-spec:
-  selector:
-    matchLabels:
-      app: httpbin
-  rules:
-  - from:
-    - source:
-        requestPrincipals: ["*"]
----
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -75,7 +61,7 @@ metadata:
   namespace: pulsar
 spec:
   #image: streamnative/private-cloud:3.0.0.4
-  image: streamnative/private-cloud:3.0.1.2
+  image: streamnative/private-cloud:3.1.1.1
   # auditLog:
   #   categories:
   #     - Management
@@ -108,7 +94,7 @@ spec:
   #       - kind: StatefulSet
   #     name: .*-zk$
   #image: streamnative/private-cloud:3.0.0.4
-  image: streamnative/private-cloud:3.0.1.2
+  image: streamnative/private-cloud:3.1.1.1
   replicas: 3
   logConfig:
     format: json
@@ -166,7 +152,7 @@ metadata:
     k8s.streamnative.io/coordinator-name: private-cloud
 spec:
   #image: streamnative/private-cloud:3.0.0.4
-  image: streamnative/private-cloud:3.0.1.2
+  image: streamnative/private-cloud:3.1.1.1
   replicas: 3
   zkServers: zookeepers-zk:2181
   logConfig:
@@ -232,7 +218,7 @@ spec:
   #   externalService:
   #     managed: false
   #image: streamnative/private-cloud:3.0.0.4
-  image: streamnative/private-cloud:3.0.1.2
+  image: streamnative/private-cloud:3.1.1.1
   replicas: 3
   logConfig:
     level: DEBUG
@@ -286,8 +272,21 @@ spec:
         certSecretName: pulsar-home-lab-tls
         mode: simple
     trustDomain: "pulsar.home.lab"
-
     #webSocketServiceEnabled: true
+---
+apiVersion: k8s.streamnative.io/v1alpha1
+kind: SNConsole
+metadata:
+  name: sn-private-console
+  namespace: pulsar
+  labels:
+    k8s.streamnative.io/coordinator-name: private-cloud
+spec:
+  image: streamnative/private-cloud-console:v2.3.4
+  kopServiceUrl: brokers-broker:9092
+  webServiceUrl: http://brokers-broker:8080
+
+
 # ---
 # apiVersion: pulsar.streamnative.io/v1alpha1
 # kind: PulsarProxy
@@ -365,23 +364,6 @@ spec:
 #       enabled: true
 #   # logConfig:
 #   #   level: DEBUG
-# ---
-# apiVersion: k8s.streamnative.io/v1alpha1
-# kind: SNConsole
-# metadata:
-#   name: sn-private-console
-#   namespace: pulsar
-#   labels:
-#     k8s.streamnative.io/coordinator-name: private-cloud
-# spec:
-#   image: streamnative/private-cloud-console:v2.0.0
-#   kopServiceUrl: brokers-broker:9092
-#   webServiceUrl: http://brokers-broker:8080
-  # customization:
-  #   match:
-  #     name: 
-  #   manifest:
-
 
 # ---
 # apiVersion: k8s.streamnative.io/v1alpha1
@@ -430,4 +412,3 @@ spec:
 #       gateways:
 #         - apikeys-gateway
 #   replicas: 1
----

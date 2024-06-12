@@ -13,7 +13,7 @@ spec:
     nodeAddressAutodetectionV4:
       kubernetes: NodeInternalIP
     linuxDataplane: BPF
-    hostPorts: null
+    hostPorts: "Disabled"
 ---
 apiVersion: operator.tigera.io/v1
 kind: APIServer

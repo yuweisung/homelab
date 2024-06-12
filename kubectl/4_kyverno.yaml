@@ -1,0 +1,33 @@
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
+  tasks:
+  - name: add kyverno helm repo
+    kubernetes.core.helm_repository:
+      name: kyverno
+      repo_url: https://kyverno.github.io/kyverno/
+    ignore_errors: true
+  - name: install kyverno
+    kubernetes.core.helm:
+      name: kyverno
+      release_namespace: kyverno
+      chart_ref: kyverno/kyverno
+      update_repo_cache: true
+      create_namespace: true
+      force: true
+      set_values:
+        - value: admissionController.replicas=3
+        - value: backgroundController.replicas=2
+        - value: cleanupController.replicas=2
+        - value: reportsController.replicas=2
+  - name: wait for webhook
+    ansible.builtin.wait_for:
+      timeout: 30
+  - name: install kyverno policy
+    kubernetes.core.helm:
+      name: kyverno-policies
+      release_namespace: kyverno
+      chart_ref: kyverno/kyverno-policies
+      update_repo_cache: true
+      force: true

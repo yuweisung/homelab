@@ -1,0 +1,26 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: nginx-manifests
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  url: ssh://git@10.10.0.37/ysung/datatesseract
+  ref:
+    branch: main
+  secretRef:
+    name: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: nginx-source-kustomization
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  path: ./apps/nginx
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: nginx-manifests
+  targetNamespace: default

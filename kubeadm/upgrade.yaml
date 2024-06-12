@@ -1,3 +1,13 @@
+- hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: patch kube repo
+    ansible.builtin.apt_repository:
+      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ k8s_repo_version }}/deb/ /"
+      state: present
+      filename: kubernetes
+      update_cache: true
 - hosts: master
   gather_facts: no
   become: yes
@@ -5,7 +15,7 @@
   ignore_unreachable: true
   tasks:
   - name: install new kube packages
-    shell: apt-get install -y --allow-change-held-packages --allow-downgrades kubeadm="{{ k8s_version }}-00" kubelet="{{ k8s_version }}-00" kubectl="{{ k8s_version }}-00"
+    shell: apt-get install -y --allow-change-held-packages --allow-downgrades kubeadm="{{ k8s_version }}-1.1" kubelet="{{ k8s_version }}-1.1" kubectl="{{ k8s_version }}-1.1"
   - name: hold k8s
     dpkg_selections:
       name: "{{ item }}"
@@ -19,7 +29,7 @@
     ignore_errors: true
   - name: localaction-drain {{ inventory_hostname }}
     become: false
-    local_action: ansible.builtin.command kubectl drain {{ inventory_hostname }} --ignore-daemonsets
+    local_action: ansible.builtin.command kubectl drain {{ inventory_hostname }} --ignore-daemonsets --disable-eviction
     ignore_errors: true
   - name: restart kubelet
     systemd:
@@ -37,14 +47,14 @@
   ignore_unreachable: true
   tasks:
   - name: install new kube packages
-    shell: apt-get install -y --allow-change-held-packages --allow-downgrades kubeadm="{{ k8s_version }}-00" kubectl="{{ k8s_version }}-00" kubelet="{{ k8s_version }}-00"
+    shell: apt-get install -y --allow-change-held-packages --allow-downgrades kubeadm="{{ k8s_version }}-1.1" kubectl="{{ k8s_version }}-1.1" kubelet="{{ k8s_version }}-1.1"
   - name: upgrade kubeadm
     shell: kubeadm upgrade node
     ignore_errors: true
-  - name: localaction-drain {{ inventory_hostname }}
-    become: false
-    local_action: ansible.builtin.command kubectl drain {{ inventory_hostname }} --ignore-daemonsets --delete-emptydir-data --disable-eviction
-    ignore_errors: true
+  # - name: localaction-drain {{ inventory_hostname }}
+  #   become: false
+  #   local_action: ansible.builtin.command kubectl drain {{ inventory_hostname }} --ignore-daemonsets --delete-emptydir-data --disable-eviction
+  #   ignore_errors: true
   - name: restart kubelet
     systemd:
       name: kubelet

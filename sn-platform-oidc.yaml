@@ -1,0 +1,312 @@
+components:
+  vault: false
+  functions: false
+  streamnative_console: false
+  pulsar_detector: false
+  toolset: true
+  proxy: false
+monitoring:
+  prometheus: false
+  grafana: false
+  node_exporter: false
+  alert_manager: false
+images:
+  zookeeper:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+    customTools:
+      backup:
+        repository: "streamnative/pulsar-metadata-tool"
+        tag: "3.0.1.2"
+      restore:
+        repository: "streamnative/pulsar-metadata-tool"
+        tag: "3.0.1.2"
+  bookie:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+  presto:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+    exporter:
+      repository: bitnami/jmx-exporter
+      tag: "0.17.0"
+      pullPolicy: IfNotPresent
+  # NOTE: allow overriding the presto worker image
+  # presto_worker:
+  #   repository: streamnative/sn-platform
+  #   tag: 3.0.1.2
+  #   pullPolicy: IfNotPresent
+  autorecovery:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+  broker:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+  proxy:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+  pulsar_detector:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+  functions:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+  function_worker:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+  # NOTE: allow overriding the toolset image
+  toolset:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+    kafka:
+      repository: confluentinc/cp-kafka
+      tag: "7.3.1"
+      pullPolicy: IfNotPresent
+    busybox:
+      repository: busybox
+      tag: "1.35.0"
+      pullPolicy: IfNotPresent
+  prometheus:
+    repository: quay.io/prometheus/prometheus
+    tag: "v2.43.0"
+    pullPolicy: IfNotPresent
+  alert_manager:
+    repository: quay.io/prometheus/alertmanager
+    tag: "v0.25.0"
+    pullPolicy: IfNotPresent
+  grafana:
+    repository: streamnative/apache-pulsar-grafana-dashboard-k8s
+    tag: "0.0.20"
+    pullPolicy: IfNotPresent
+  streamnative_console:
+    repository: streamnative/private-cloud-console
+    tag: "v2.1.3"
+    pullPolicy: IfNotPresent
+    hasCommand: false
+  node_exporter:
+    repository: quay.io/prometheus/node-exporter
+    tag: "v1.5.0"
+    pullPolicy: "IfNotPresent"
+  nginx_ingress_controller:
+    repository: quay.io/kubernetes-ingress-controller/nginx-ingress-controller
+    tag: "0.26.2"
+    pullPolicy: "IfNotPresent"
+  vault:
+    repository: hashicorp/vault
+    tag: "1.11.8"
+    pullPolicy: "IfNotPresent"
+  bank_vaults:
+    repository: ghcr.io/banzaicloud/bank-vaults
+    tag: "1.16.0"
+    pullPolicy: "IfNotPresent"
+  vault_init:
+    repository: streamnative/pulsar_vault_init
+    tag: "v1.0.6"
+  custom_metric_server_prometheus:
+    repository: quay.io/prometheus/prometheus
+    tag: "v2.43.0"
+    pullPolicy: IfNotPresent
+  custom_metric_server:
+    repository: registry.k8s.io/prometheus-adapter/prometheus-adapter
+    tag: "v0.9.0"
+    pullPolicy: IfNotPresent
+  pulsar_metadata:
+    repository: streamnative/sn-platform
+    tag: "3.0.1.2"
+    pullPolicy: IfNotPresent
+  configmapReload:
+    repository: jimmidyson/configmap-reload
+    tag: "v0.8.0"
+    pullPolicy: IfNotPresent
+  external_dns:
+    repository: registry.k8s.io/external-dns/external-dns
+    tag: "v0.7.3"
+    pullPolicy: IfNotPresent
+tls:
+  enabled: false
+  common:
+    caSecretName: root-secret
+  proxy:
+    enabled: false
+    certSecretName: tls-proxy
+    untrustedCa: true
+  broker:
+    enabled: false
+    cert_name: tls-broker
+    trustCertsEnabled: true
+  toolset:
+    # certSecretName: test1-admin
+auth:
+  authentication:
+    enabled: false
+  authorization:
+    enabled: false
+  vault:
+    enabled: false
+  oauth:
+    enabled: false
+    oauthIssuerUrl: 
+    oauthAudience:
+    oauthSubjectClaim:
+    oauthAuthzRoleClaim:
+    oauthAuthzAdminRole:
+    # brokerClientCredential: ""
+    # brokerClientAuthenticationPlugin: org.apache.pulsar.client.impl.auth.oauth2.AuthenticationOAuth2
+    # brokerClientAuthenticationParameters: ""
+    # Create secret by use kubectl
+    # kubectl create secret generic my-secret \
+    # --from-literal=broker_client_credential.json=$(echo -n '{"client_id":"your-client-id","client_secret":"your-client-secret","issuer_url":"http://your-issuer-url/"}') \
+    # -n your-namespace
+    brokerClientCredentialSecret: "my-secret"
+    # brokerClientAuthenticationParameters: {"privateKey":"file:///mnt/secrets/broker_client_credential.json", "issuerUrl":"https://login.microsoftonline.com/your-tenant-id/v2.0", "audience":"your-audience", "scope":"your-scope"}
+    authenticationProvider: "io.streamnative.pulsar.broker.authentication.AuthenticationProviderOAuth"
+    authorizationProvider: "io.streamnative.pulsar.broker.authorization.AuthorizationProviderOAuth"
+
+
+zookeeper:
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "0.5"
+  jvm:
+    memoryOptions:
+    - >
+      -XX:MaxRAMPercentage=45
+      -XX:InitialRAMPercentage=45
+      -XX:NativeMemoryTracking=summary
+    gcOptions:
+    - >
+      -XX:+UseZGC
+      -Djute.maxbuffer=10485760
+      -Dzookeeper.forceSync=no
+      -XX:-ZUncommit
+
+bookkeeper:
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "0.5"
+  configData:
+    PULSAR_PREFIX_dbStorage_directIOEntryLogger: "true"
+  jvm:
+    memoryOptions:
+    - >
+      -XX:MaxRAMPercentage=45
+      -XX:NativeMemoryTracking=summary
+    gcOptions:
+    - >
+      -XX:+UseZGC
+      -Djute.maxbuffer=10485760
+      -XX:-ResizePLAB
+      -XX:-ZUncommit
+  operator:
+    loadManagerClassName: "org.apache.pulsar.broker.loadbalance.extensions.ExtensibleLoadManagerImpl"
+    loadBalancerLoadSheddingStrategy: "org.apache.pulsar.broker.loadbalance.extensions.scheduler.TransferShedder"
+
+autorecovery:
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "0.5"
+  jvm:
+    memoryOptions:
+    - >
+      -XX:MaxRAMPercentage=45
+    gcOptions:
+    - >
+      -XX:+UseZGC
+      -Djute.maxbuffer=10485760
+      -XX:-ResizePLAB
+      -XX:-ZUncommit
+
+broker:
+  kop:
+    enabled: false
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "0.5"
+  jvm:
+    memoryOptions:
+    - >
+      -XX:MaxRAMPercentage=45
+      -XX:NativeMemoryTracking=summary
+    gcOptions:
+    - >
+      -XX:+UseZGC
+      -Djute.maxbuffer=10485760
+      -XX:-ZUncommit
+  # extraSecretRefs:
+  # - mountPath: /pulsar/certs/client-ca
+  #   secretName: "root-secret"
+  # - mountPath: /pulsar/certs/admin
+  #   secretName: "test1-admin"
+  configData:
+    managedLedgerDefaultEnsembleSize: "3"
+    managedLedgerDefaultWriteQuorum: "2"
+    managedLedgerDefaultAckQuorum: "2"
+    webSocketServiceEnabled: "true"
+    #brokerServicePortTLS: 6651
+    #webServicePortTls: 8081
+    #tlsTrustCertsFilePath: /etc/tls/pulsar-broker/ca.crt
+    #tlsCertificateFilePath: /etc/tls/pulsar-broker/tls.crt
+    #tlsKeyFilePath: /etc/tls/pulsar-broker/tls.key
+    #tlsRequireTrustedClientCertOnConnect: "true"
+    #brokerClientTlsEnabled: "true"
+    #brokerClientTrustCertsFilePath: "/etc/tls/pulsar-broker/ca.crt"
+    #brokerClientCertificateFilePath: /pulsar/certs/admin.crt
+    #brokerClientKeyFilePath: /pulsar/certs/admin.key
+    #brokerClientAuthenticationPlugin: "org.apache.pulsar.client.impl.auth.AuthenticationTls"
+    #brokerClientAuthenticationParamerters: "{\"tlsCertFile\":\"/pulsar/certs/admin/tls.crt\",\"tlsKeyFile\":\"/pulsar/certs/admin/tls.key\"}"
+
+proxy:
+  tlsSecretName: 
+  # extraSecretRefs:
+  # - mountPath: /pulsar/certs/client-ca
+  #   secretName: "root-secret"
+  # - mountPath: /pulsar/certs/admin
+  #   secretName: "test1-admin"
+  # - mountPath: /pulsar/certs/broker
+  #   secretName: "test1-tls-broker"
+  configData:
+    metadataStoreUrl: test1-sn-platform-zookeeper
+    #servicePortTls: 6651
+    #webServicePortTls: 8081
+    #tlsTrustCertsFilePath: /pulsar/certs/ca/ca.crt
+    #tlsCertificateFilePath: /pulsar/certs/proxy/tls.crt
+    #tlsKeyFilePath: /pulsar/certs/proxy/key.crt
+    #tlsRequireTrustedClientCertOnConnect: true
+    #tlsEnabledWithBroker: "true"
+    #brokerClientTrustCertsFilePath: "/pulsar/certs/client-ca"
+    #brokerClientCertificateFilePath: /pulsar/certs/proxy/tls.crt
+    #brokerClientKeyFilePath: /pulsar/certs/proxy/tls.key
+    #brokerClientAuthenticationPlugin: "org.apache.pulsar.client.impl.auth.AuthenticationTls"
+    #brokerClientAuthenticationParamerters: "{\"tlsCertFile\":\"/pulsar/certs/admin/tls.crt\",\"tlsKeyFile\":\"/pulsar/certs/admin/tls.key\"}"
+
+toolset:
+  useProxy: true
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 1
+  # extraSecretRefs:
+  # - mountPath: /pulsar/certs/client-ca
+  #   secretName: "root-secret"
+  # - mountPath: /pulsar/certs/admin
+  #   secretName: "test1-admin"
+  configData:
+    PULSAR_MEM: >
+      -XX:MaxRAMPercentage=45
+    #brokerClientTrustCertsFilePath: "/pulsar/certs/client-ca"
+    #brokerClientAuthenticationPlugin: "org.apache.pulsar.client.impl.auth.AuthenticationTls"
+    #brokerClientAuthenticationParamerters: "{\"tlsCertFile\":\"/pulsar/certs/admin/tls.crt\",\"tlsKeyFile\":\"/pulsar/certs/admin/tls.key\"}"

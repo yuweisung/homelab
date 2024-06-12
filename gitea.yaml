@@ -1,0 +1,77 @@
+podSecurityContext:
+  fsGroup: 0
+service:
+  http:
+    type: LoadBalancer
+    loadBalancerIP: 10.10.0.37
+    port: 443
+    annotations:
+      metallb.universe.tf/allow-shared-ip: "gitea"
+  ssh:
+    type: LoadBalancer
+    loadBalancerIP: 10.10.0.37
+    port: 22
+    ClusterIP:
+    annotations:
+      metallb.universe.tf/allow-shared-ip: "gitea"
+persistence:
+  size: 100Gi
+extraVolumes:
+  - name: tls
+    csi:
+      driver: csi.cert-manager.io
+      readOnly: true
+      volumeAttributes:
+        csi.cert-manager.io/issuer-name: ca-issuer
+        csi.cert-manager.io/issuer-kind: ClusterIssuer
+        csi.cert-manager.io/common-name: "${SERVICE_ACCOUNT_NAME}.${POD_NAMESPACE}"
+        csi.cert-manager.io/dns-names: "${POD_NAME}.${POD_NAMESPACE}.svc.cluster.local,gitea.home.lab"
+        csi.cert-manager.io/uri-sans: "spiffe://cluster.local/ns/${POD_NAMESPACE}/pod/${POD_NAME}/${POD_UID}"
+        csi.cert-manager.io/ip-sans: 10.10.0.37
+  # - name: bundle
+  #   configMap:
+  #     name: "home.lab"
+extraContainerVolumeMounts:
+  - name: tls
+    readOnly: true
+    mountPath: /data/certs
+  # - name: bundle
+  #   readOnly: true
+  #   mountPath: /data/certs/ca
+gitea:
+  podAnnotations:
+  admin:
+    username: "ysung"
+    password: "changeme"
+    email: "ysung@mm2.home.lab"
+  config:
+    database:
+      DB_TYPE: postgres
+    session:
+      PROVIDER: db
+    cache:
+      ADAPTER: memory
+    queue:
+      TYPE: level
+    indexer:
+      ISSUE_INDEXER_TYPE: bleve
+      REPO_INDEXER_ENABLED: true
+    server:
+      ROOT_URL: https://gitea.home.lab/
+      PROTOCOL: https
+      HTTP_PORT: 8443
+      CERT_FILE: /data/certs/tls.crt
+      KEY_FILE: /data/certs/tls.key
+      SSH_DOMAIN: gitea.home.lab
+      SSH_LISTEN_PORT: 2222
+    webhook:
+      SKIP_TLS_VERIFY: true
+    actions:
+      ENABLED: true
+    
+postgresql-ha:
+  enabled: false
+postgresql:
+  enabled: true
+redis-cluster:
+  enabled: false

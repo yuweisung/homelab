@@ -4,6 +4,7 @@
     KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
   tasks:
   - name: download rookceph
+    tags: upgrade
     ansible.builtin.get_url:
       url: "{{ item.url }}"
       dest: "{{ item.dest }}"
@@ -25,6 +26,9 @@
     kubernetes.core.k8s:
       state: present
       src: "{{ item }}"
+      # server_side_apply:
+      #   force_conflicts: true
+    tags: upgrade
     with_items:
       - /tmp/crds.yaml
       - /tmp/common.yaml

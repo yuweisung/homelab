@@ -3,8 +3,6 @@
   gather_facts: no
   become: yes
   tasks:
-  - name: update apt repo and cache
-    apt: update_cache=yes cache_valid_time=3600
   - name: hold k8s
     dpkg_selections:
       name: "{{ item }}"
@@ -14,17 +12,21 @@
     - kubeadm
     - kubectl
   - name: upgrade all apt packages
-    apt: upgrade=yes
+    apt: 
+      upgrade: yes
+      force_apt_get: yes
+      update_cache: yes
+      cache_valid_time: 3600 
     environment:
       DEBIAN_FRONTEND: noninteractive
   - name: check reboot
     register: reboot_required_file
-    stat: path=/var/run/reboot-required get_md5=no
+    stat: path=/var/run/reboot-required
   - name: reboot if necessary
     reboot:
       msg: "Reboot inited by ansible due to kernel updates"
-      connect_timeout: 5
-      reboot_timeout: 300
+      connect_timeout: 120
+      reboot_timeout: 600
       pre_reboot_delay: 0
       test_command: uptime
     when: reboot_required_file.stat.exists
