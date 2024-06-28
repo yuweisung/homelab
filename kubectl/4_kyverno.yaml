@@ -5,8 +5,11 @@
   tasks:
   - name: add kyverno helm repo
     kubernetes.core.helm_repository:
-      name: kyverno
-      repo_url: https://kyverno.github.io/kyverno/
+      name: "{{ item.name }}"
+      repo_url: "{{ item.url }}"
+    with_items:
+      - { name: kyverno, url: https://kyverno.github.io/kyverno/ }
+      - { name: policy-reporter, url: https://kyverno.github.io/policy-reporter }
     ignore_errors: true
   - name: install kyverno
     kubernetes.core.helm:
@@ -29,5 +32,12 @@
       name: kyverno-policies
       release_namespace: kyverno
       chart_ref: kyverno/kyverno-policies
+      update_repo_cache: true
+      force: true
+  - name: install kyverno policy reporter
+    kubernetes.core.helm:
+      name: policy-reporter
+      release_namespace: kyverno
+      chart_ref: policy-reporter/policy-reporter
       update_repo_cache: true
       force: true

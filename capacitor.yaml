@@ -23,7 +23,6 @@ spec:
   wait: true
   prune: true
   path: "./"
-  patch
   sourceRef:
     kind: OCIRepository
     name: capacitor

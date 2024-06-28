@@ -11,7 +11,7 @@
       state: present
   - name: download fluent operator
     ansible.builtin.get_url:
-      url: https://raw.githubusercontent.com/fluent/fluent-operator/release-2.1/manifests/setup/setup.yaml
+      url: https://raw.githubusercontent.com/fluent/fluent-operator/release-2.9/manifests/setup/setup.yaml
       dest: /tmp/fluent-operator.yaml
       mode: '0664'
   - name: apply fluent operator
