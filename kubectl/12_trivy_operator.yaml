@@ -1,0 +1,25 @@
+- hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: "{{ kubeconf | default('/Users/ysung/.kube/config')}}"
+  tasks:
+  - name: add aqua helm repo
+    kubernetes.core.helm_repository:
+      name: gitea
+      repo_url: https://dl.gitea.com/charts/
+    ignore_errors: true
+  - name: create trivy namespace
+    kubernetes.core.k8s:
+      name: trivy-system
+      api_version: v1
+      kind: Namespace
+      state: present
+  - name: install trivy-operatorj
+    kubernetes.core.helm:
+      name: trivy-operator
+      release_namespace: trivy-system
+      chart_ref: aqua/trivy-operator
+      update_repo_cache: true
+      force: true
+      values_files:
+        - /Users/ysung/git/homelab/trivy-operator.yaml

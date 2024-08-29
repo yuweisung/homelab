@@ -68,7 +68,7 @@
       group: root
       mode: '600'
     with_items:
-      - "/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+      # - "/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
       - "/var/lib/kubelet/config.yaml"
   - name: 4.1-2
     ansible.builtin.file:

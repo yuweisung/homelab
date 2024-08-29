@@ -53,6 +53,14 @@
       repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{k8s_repo_version}}/deb/ /"
       state: present
       filename: kubernetes.list
+  - name: elastic key
+    shell: |
+      curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch |sudo gpg --dearmor -o /etc/apt/keyrings/elastic-apt-keyring.gpg --yes
+  - name: elastic repo
+    apt_repository:
+      repo: "deb [signed-by=/etc/apt/keyrings/elastic-apt-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main"
+      state: present
+      filename: elastic-8.x.list
   - name: apt update
     apt:
       force_apt_get: 'yes'
@@ -72,6 +80,8 @@
       - containerd
       - open-iscsi
       - ceph-common
+      - clang
+      - metricbeat
   - name: hold k8s
     dpkg_selections:
       name: "{{ item }}"
@@ -83,6 +93,12 @@
   - name: enable containerd
     ansible.builtin.systemd:
       name: containerd.service
+      state: started
+      enabled: true
+      daemon_reload: true
+  - name: enable metricbeat
+    ansible.builtin.systemd:
+      name: metricbeat.service
       state: started
       enabled: true
       daemon_reload: true

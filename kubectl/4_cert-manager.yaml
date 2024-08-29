@@ -74,6 +74,8 @@
             additionalFormats:
               jks:
                 key: "bundle.jks"
+              pkcs12:
+                key: "bundle.p12"
             secret:
               key: "ca.crt"              
             # namespaceSelector:

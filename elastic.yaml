@@ -6,17 +6,17 @@ metadata:
   namespace: elastic
 spec:
   version: 8.14.1
-  transport:
-    tls:
-      certificate:
-        secretName: elastic-home-lab
+  # transport:
+  #   tls:
+  #     certificateAuthorities:
+  #       configMapName: home.lab
   nodeSets:
   - name: default
-    count: 1
+    count: 3
     config:
       node.store.allow_mmap: false
-      xpack.security.transport.ssl.key: /usr/share/elasticsearch/config/cert-manager-certs/tls.key
-      xpack.security.transport.ssl.certificate: /usr/share/elasticsearch/config/cert-manager-certs/tls.crt
+      # xpack.security.transport.ssl.key: /usr/share/elasticsearch/config/cert-manager-certs/tls.key
+      # xpack.security.transport.ssl.certificate: /usr/share/elasticsearch/config/cert-manager-certs/tls.crt
     podTemplate:
       spec:
         containers:
@@ -28,19 +28,30 @@ spec:
             limits:
               memory: 4Gi
               cpu: 2
-          volumeMounts:
-          - name: transport-certs
-            mountPath: /usr/share/elasticsearch/config/cert-manager-certs
-        volumes:
-        - name: transport-certs
-          csi:
-            driver: csi-cert-manager.io
-            readOnly: true
-            volumeAttributes:
-              csi.cert-manager.io/issuer-name: ca-issuer
-              csi.cert-manager.io/issuer-kind: ClusterIssuer
-              csi.cert-manager.io/dns-names: "${POD_NAME}.${POD_NAMESPACE}.svc.cluster.local"
-              csi.cert-manager.io/common-name: "elastic.home.lab"        
+        #   volumeMounts:
+        #   - name: tls
+        #     mountPath: /usr/share/elasticsearch/config/cert-manager-certs
+        # volumes:
+        # - name: tls
+        #   csi:
+        #     driver: csi.cert-manager.io
+        #     readOnly: true
+        #     volumeAttributes:
+        #       csi.cert-manager.io/issuer-name: ca-issuer
+        #       csi.cert-manager.io/issuer-kind: ClusterIssuer
+        #       csi.cert-manager.io/dns-names: "${POD_NAME}.${POD_NAMESPACE}.svc.cluster.local"
+        #       csi.cert-manager.io/common-name: "elastic.home.lab"     
+        #       csi.cert-manager.io/ip-sans:   10.10.0.34
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: rook-ceph-block
 ---
 apiVersion: kibana.k8s.elastic.co/v1
 kind: Kibana
@@ -54,11 +65,9 @@ spec:
     name: my-ec
     namespace: elastic
   http:
-    tls:
-      certificate:
-        secretName: elastic-home-lab
     service:
       spec:
         type: LoadBalancer
-        loadBalancerIP: 10.10.0.34
-        externalName: elastic.home.lab
+    # tls:
+    #   certificate:
+    #     secretName: 

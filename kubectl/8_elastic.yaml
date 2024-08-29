@@ -11,13 +11,19 @@
       state: present
   - name: download elastic operator
     ansible.builtin.get_url:
-      url: https://operatorhub.io/install/elastic-cloud-eck.yaml
-      dest: /tmp/elastic-operator.yaml
+      url: "{{ item.url }}"
+      dest: "/tmp/{{ item.name }}"
       mode: '0664'
+    with_items:
+      - { name: elastic-crds.yaml, url: https://download.elastic.co/downloads/eck/2.13.0/crds.yaml }
+      - { name: elastic-operator.yaml, url: https://download.elastic.co/downloads/eck/2.13.0/operator.yaml }
   - name: apply elastic operator
     kubernetes.core.k8s:
       state: present
       src: /tmp/elastic-operator.yaml
+    with_items:
+      - /tmp/elastic-crds.yaml
+      - /tmp/elastic-operator.yaml
   #wait for 30s
   # - name: apply elastic cr
   #   kubernetes.core.k8s:

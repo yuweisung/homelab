@@ -59,7 +59,10 @@ spec:
     #deviceFilter:
     config:
     nodes:
-      - name: "ms01.home.lab"
+      - name: "ms1.home.lab"
+        devices:
+        - name: "/dev/disk/by-id/dm-name-ubuntu--vg-rook"
+      - name: "ms2.home.lab"
         devices:
         - name: "/dev/disk/by-id/dm-name-ubuntu--vg-rook"
       - name: "w4.home.lab"

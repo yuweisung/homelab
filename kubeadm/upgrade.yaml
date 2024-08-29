@@ -15,7 +15,7 @@
   ignore_unreachable: true
   tasks:
   - name: install new kube packages
-    shell: apt-get install -y --allow-change-held-packages --allow-downgrades kubeadm="{{ k8s_version }}-1.1" kubelet="{{ k8s_version }}-1.1" kubectl="{{ k8s_version }}-1.1"
+    shell: DEBIAN_FRONTEND=noninteractive apt-get install -yq --allow-change-held-packages --allow-downgrades kubeadm="{{ k8s_version }}-1.1" kubelet="{{ k8s_version }}-1.1" kubectl="{{ k8s_version }}-1.1"
   - name: hold k8s
     dpkg_selections:
       name: "{{ item }}"
@@ -47,7 +47,7 @@
   ignore_unreachable: true
   tasks:
   - name: install new kube packages
-    shell: apt-get install -y --allow-change-held-packages --allow-downgrades kubeadm="{{ k8s_version }}-1.1" kubectl="{{ k8s_version }}-1.1" kubelet="{{ k8s_version }}-1.1"
+    shell: DEBIAN_FRONTEND=noninteractive apt-get install -yq --allow-change-held-packages --allow-downgrades kubeadm="{{ k8s_version }}-1.1" kubectl="{{ k8s_version }}-1.1" kubelet="{{ k8s_version }}-1.1"
   - name: upgrade kubeadm
     shell: kubeadm upgrade node
     ignore_errors: true

@@ -39,7 +39,7 @@ spec:
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: exclude-namespaces-example
+  name: exclude-namespaces
   annotations:
     policies.kyverno.io/title: Exclude Namespaces Dynamically
     policies.kyverno.io/category: Sample
